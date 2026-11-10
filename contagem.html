@@ -28,6 +28,7 @@ input:focus-visible,button:focus-visible,select:focus-visible{outline:3px solid 
 button.b{font:inherit;font-weight:600;border:1px solid var(--accent);background:var(--accent);color:var(--accent-ink);border-radius:9px;padding:10px 16px;min-height:44px;cursor:pointer}
 button.b.alt{background:transparent;color:var(--accent)}
 button.b.sm{min-height:36px;padding:6px 12px;font-size:14px}
+#learn:not([hidden]){position:fixed;left:0;right:0;bottom:0;max-height:86vh;overflow-y:auto;z-index:60;margin:0;border-radius:18px 18px 0 0;box-shadow:0 0 0 100vmax rgba(0,0,0,.55);border:2px solid var(--accent);-webkit-overflow-scrolling:touch}
 .hint{color:var(--mute);font-size:13px;margin:8px 0 0}
 .big{font-family:'Space Grotesk',Inter,sans-serif;font-size:34px;font-weight:700;line-height:1;font-variant-numeric:tabular-nums}
 .res{display:flex;justify-content:space-between;gap:12px;align-items:center}
@@ -190,7 +191,7 @@ function unteach(ean){S.eans.delete(ean);render();dbWrite('ean/'+ean,()=>S.db.do
 
 /* ---------- som ---------- */
 let AC=null;
-function beep(f,ms){try{AC=AC||new(window.AudioContext||window.webkitAudioContext)();const o=AC.createOscillator(),g=AC.createGain();o.frequency.value=f;g.gain.value=.08;o.connect(g);g.connect(AC.destination);o.start();o.stop(AC.currentTime+ms/1000)}catch(e){}try{navigator.vibrate&&navigator.vibrate(30)}catch(e){}}
+function beep(f,ms){try{AC=AC||new(window.AudioContext||window.webkitAudioContext)();const o=AC.createOscillator(),g=AC.createGain();o.type='square';o.frequency.value=f;g.gain.value=.7;o.connect(g);g.connect(AC.destination);o.start();o.stop(AC.currentTime+ms/1000)}catch(e){}try{navigator.vibrate&&navigator.vibrate(30)}catch(e){}}
 
 /* ---------- EAN ---------- */
 function eanOk(s){
@@ -252,9 +253,10 @@ function renderLearn(){
   }
   if(!L.p)h+='<div class="row" style="margin-top:10px"><button class="b alt" id="lcancel">Cancelar</button></div>';
   el.innerHTML=h;
+  if(!L.p&&!L.q){const i=$('#lq');if(i&&!L.noFocus)setTimeout(()=>i.focus(),50)}
 }
 $('#learn').addEventListener('input',ev=>{
-  if(ev.target.id==='lq'){LEARN.q=ev.target.value;const sel=ev.target.selectionStart;renderLearn();const i=$('#lq');i.focus();i.setSelectionRange(sel,sel)}
+  if(ev.target.id==='lq'){LEARN.q=ev.target.value;let h='';searchP(LEARN.q).forEach(p=>{h+='<button class="item" data-p="'+esc(p.c)+'"><span class="n"><b>'+esc(p.l+p.c)+'</b> · '+esc(p.d)+(p.x?' <span class="sub">'+esc(p.x)+'</span>':'')+'</span><span class="sub">'+esc(p.m)+(p.b?' · no Bling':'')+'</span></button>'});$('#lres').innerHTML=h}
   if(ev.target.id==='lcn'){LEARN.cor=ev.target.value;LEARN.corCod=($('#lcc')||{}).value||'';document.querySelectorAll('#lcor button').forEach(b=>b.setAttribute('aria-pressed','false'))}
   if(ev.target.id==='lcc'){LEARN.corCod=ev.target.value;LEARN.cor=($('#lcn')||{}).value||'';document.querySelectorAll('#lcor button').forEach(b=>b.setAttribute('aria-pressed','false'))}
   if(ev.target.id==='ltn'){LEARN.tam=ev.target.value.toUpperCase();document.querySelectorAll('#ltam button').forEach(b=>b.setAttribute('aria-pressed','false'))}
@@ -298,7 +300,7 @@ $('#file').addEventListener('change',async ev=>{
 });
 function nextLearn(){
   if(!QUEUE.length){LEARN=null;renderLearn();return false}
-  const it=QUEUE.shift();LEARN={ean:it.ean,qtd:it.qtd,p:null,cor:'',corCod:'',tam:'',q:'',rest:QUEUE.length};renderLearn();$('#learn').scrollIntoView({block:'nearest'});return true
+  const it=QUEUE.shift();LEARN={ean:it.ean,qtd:it.qtd,p:null,cor:'',corCod:'',tam:'',q:'',rest:QUEUE.length};renderLearn();return true
 }
 $('#golista').addEventListener('click',()=>{
   const toks=($('#lista').value||'').split(/[^0-9]+/).filter(Boolean);
@@ -383,10 +385,23 @@ async function camStart(){
   try{
     const v=$('#vid');
     if('BarcodeDetector' in window){
-      CAM.stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:'environment'},width:{ideal:1280},height:{ideal:720}},audio:false});
+      CAM.stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:'environment'},width:{ideal:1920},height:{ideal:1080}},audio:false});
+      try{const tr=CAM.stream.getVideoTracks()[0];const cp=tr.getCapabilities?tr.getCapabilities():{};
+        if(cp.focusMode&&cp.focusMode.includes('continuous'))await tr.applyConstraints({advanced:[{focusMode:'continuous'}]})}catch(e){}
       v.srcObject=CAM.stream;await v.play();CAM.on=true;
-      const det=new BarcodeDetector({formats:['ean_13','ean_8','upc_a','upc_e']});
-      const loop=async()=>{if(!CAM.on)return;try{if(v.readyState>=2){const r=await det.detect(v);if(r.length)onCode(r[0].rawValue)}}catch(e){}setTimeout(loop,120)};loop();
+      let det;try{const fm=await BarcodeDetector.getSupportedFormats();const want=['ean_13','ean_8','upc_a','upc_e'].filter(x=>fm.includes(x));det=new BarcodeDetector({formats:want.length?want:undefined})}catch(e){det=new BarcodeDetector()}
+      const cv=document.createElement('canvas');const cx=cv.getContext('2d');let n=0;
+      const rot=async(deg)=>{const w=v.videoWidth,h=v.videoHeight;if(!w)return[];
+        if(deg===0){cv.width=w;cv.height=h;cx.drawImage(v,0,0)}else{cv.width=h;cv.height=w;cx.save();cx.translate(h/2,w/2);cx.rotate(deg*Math.PI/180);cx.drawImage(v,-w/2,-h/2);cx.restore()}
+        return det.detect(cv)};
+      const loop=async()=>{if(!CAM.on)return;n++;
+        try{if(v.readyState>=2){
+          let r=await det.detect(v);
+          if(!r.length)r=await rot(n%2?90:270);
+          if(r.length)onCode(r[0].rawValue);
+          else if(n%8===0)st.textContent='Procurando o código… ('+n+' tentativas). Chegue mais perto, deixe a etiqueta plana e bem iluminada.';
+        }}catch(e){}
+        setTimeout(loop,140)};loop();
     }else{
       if(!window.ZXing)await loadScript('https://cdn.jsdelivr.net/npm/@zxing/library@0.21.3/umd/index.min.js');
       CAM.zx=new ZXing.BrowserMultiFormatReader();CAM.on=true;
