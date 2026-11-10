@@ -1,0 +1,446 @@
+<!doctype html>
+<html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>Contagem Lupo Triumph</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;700&display=swap">
+<style>
+/* Layout: app de uma coluna, abas no topo, cartões só onde há ação. Estados por forma e texto, nunca só por cor. */
+:root{--bg:#EEF1F4;--panel:#FFFFFF;--ink:#14202B;--mute:#5B6773;--line:#D5DBE2;--accent:#1B5FC1;--accent-ink:#FFFFFF;--soft:#E3EDFB;--warn:#B45309;--warn-soft:#FDF0DC;--ok-soft:#E3EDFB;--field:#F7F9FB;--shadow:0 1px 2px rgba(20,32,43,.08)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0F161D;--panel:#18222C;--ink:#E8EDF2;--mute:#9AA7B4;--line:#2B3844;--accent:#6FA3F0;--accent-ink:#0B1520;--soft:#1D2E45;--warn:#F0B35E;--warn-soft:#3A2D17;--ok-soft:#1D2E45;--field:#111A22;--shadow:none;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0F161D;--panel:#18222C;--ink:#E8EDF2;--mute:#9AA7B4;--line:#2B3844;--accent:#6FA3F0;--accent-ink:#0B1520;--soft:#1D2E45;--warn:#F0B35E;--warn-soft:#3A2D17;--ok-soft:#1D2E45;--field:#111A22;--shadow:none;color-scheme:dark}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{background:var(--bg);color:var(--ink);font-family:Inter,system-ui,sans-serif;font-size:15px;line-height:1.45;padding-block:12px 40px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.wrap{max-width:720px;margin:0 auto;display:flex;flex-direction:column;gap:12px}
+h1{font-family:'Space Grotesk',Inter,sans-serif;font-size:21px;margin:0;letter-spacing:-.01em}
+h2{font-family:'Space Grotesk',Inter,sans-serif;font-size:16px;margin:0 0 6px}
+.top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap}
+.sub{color:var(--mute);font-size:13px}
+.chip{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);background:var(--panel);border-radius:999px;padding:3px 10px;font-size:12.5px;color:var(--mute)}
+.tabs{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:4px;position:sticky;top:env(safe-area-inset-top,0px);z-index:5}
+.tabs button{border:0;background:transparent;color:var(--mute);font:inherit;font-weight:500;padding:10px 4px;border-radius:9px;cursor:pointer;min-height:44px}
+.tabs button[aria-selected="true"]{background:var(--accent);color:var(--accent-ink)}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px;box-shadow:var(--shadow)}
+label{font-weight:500;font-size:13.5px;display:block;margin-bottom:4px}
+input,select,textarea{font:inherit;color:var(--ink);background:var(--field);border:1px solid var(--line);border-radius:9px;padding:10px 12px;min-height:44px;width:100%}
+input:focus-visible,button:focus-visible,select:focus-visible{outline:3px solid var(--accent);outline-offset:1px}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end}
+.row>*{flex:1 1 auto;min-width:0}
+.row>.fixed{flex:0 0 auto}
+button.b{font:inherit;font-weight:600;border:1px solid var(--accent);background:var(--accent);color:var(--accent-ink);border-radius:9px;padding:10px 16px;min-height:44px;cursor:pointer}
+button.b.alt{background:transparent;color:var(--accent)}
+button.b.sm{min-height:36px;padding:6px 12px;font-size:14px}
+.hint{color:var(--mute);font-size:13px;margin:8px 0 0}
+.big{font-family:'Space Grotesk',Inter,sans-serif;font-size:34px;font-weight:700;line-height:1;font-variant-numeric:tabular-nums}
+.res{display:flex;justify-content:space-between;gap:12px;align-items:center}
+.res .t{min-width:0}
+.pill{display:inline-flex;align-items:center;gap:4px;border-radius:7px;padding:2px 8px;font-size:13px;font-weight:600;background:var(--ok-soft);color:var(--accent);border:1px solid var(--accent)}
+.pill.warn{background:var(--warn-soft);color:var(--warn);border-color:var(--warn);border-style:dashed}
+.list{display:flex;flex-direction:column;gap:6px;margin-top:8px}
+.item{display:flex;justify-content:space-between;align-items:center;gap:10px;border:1px solid var(--line);border-radius:10px;padding:9px 12px;background:var(--field);text-align:left;font:inherit;color:var(--ink);cursor:pointer;width:100%}
+.item .n{min-width:0;overflow-wrap:anywhere}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.chips button{font:inherit;border:1px solid var(--line);background:var(--field);color:var(--ink);border-radius:9px;padding:8px 12px;min-height:40px;cursor:pointer}
+.chips button[aria-pressed="true"]{border-color:var(--accent);background:var(--soft);color:var(--accent);font-weight:600;box-shadow:inset 0 0 0 1px var(--accent)}
+table{border-collapse:collapse;width:100%;font-variant-numeric:tabular-nums}
+th,td{text-align:left;padding:6px 8px;border-bottom:1px solid var(--line);font-size:14px}
+th{color:var(--mute);font-weight:500;font-size:12.5px}
+td.r,th.r{text-align:right}
+.scroll{overflow-x:auto}
+details{border:1px solid var(--line);border-radius:10px;background:var(--panel)}
+summary{list-style:none;cursor:pointer;padding:10px 12px;display:flex;justify-content:space-between;gap:10px;align-items:center;min-height:44px}
+summary::-webkit-details-marker{display:none}
+.body{padding:0 12px 12px}
+.qty{display:inline-flex;align-items:center;gap:6px}
+.qty button{width:36px;height:36px;border:1px solid var(--line);background:var(--field);color:var(--ink);border-radius:8px;font-size:18px;cursor:pointer}
+.banner{border:1px dashed var(--warn);background:var(--warn-soft);color:var(--ink);border-radius:10px;padding:10px 12px;font-size:14px}
+.empty{color:var(--mute);text-align:center;padding:22px 8px}
+.sticky-top{display:flex;gap:8px;flex-wrap:wrap}
+@media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style></head><body>
+<div class="wrap">
+  <div class="top">
+    <div>
+      <h1>Contagem Lupo e Triumph</h1>
+      <div class="sub" id="sub">Carregando…</div>
+    </div>
+    <span class="chip" id="dbchip">Conectando…</span>
+  </div>
+
+  <nav class="tabs" role="tablist" aria-label="Seções">
+    <button role="tab" id="t-bipar" aria-selected="true" data-tab="bipar">Bipar</button>
+    <button role="tab" id="t-conf" aria-selected="false" data-tab="conf">Conferir</button>
+    <button role="tab" id="t-lig" aria-selected="false" data-tab="lig">Ligações</button>
+    <button role="tab" id="t-exp" aria-selected="false" data-tab="exp">Exportar</button>
+  </nav>
+
+  <section id="v-bipar" class="wrap" style="gap:12px">
+    <div class="card">
+      <div class="row"><button class="b" id="camon">Abrir a câmera para bipar</button></div>
+      <div id="camwrap" hidden style="margin-top:10px">
+        <div style="position:relative;border-radius:12px;overflow:hidden;background:#000;aspect-ratio:4/3;max-height:42vh">
+          <video id="vid" playsinline muted style="width:100%;height:100%;object-fit:cover"></video>
+          <div id="aim" style="position:absolute;left:8%;right:8%;top:38%;height:24%;border:3px dashed #fff;border-radius:10px;pointer-events:none"></div>
+        </div>
+        <p class="hint" id="camst">Aponte o código de barras para a faixa tracejada. Tire o código da frente da câmera entre uma peça e outra.</p>
+      </div>
+    </div>
+    <div class="card">
+      <label for="ean">Código de barras da peça (EAN)</label>
+      <div class="row">
+        <input id="ean" inputmode="numeric" autocomplete="off" placeholder="Bipe ou digite o número">
+        <button class="b fixed" id="go">Contar</button>
+      </div>
+      <div class="row" style="margin-top:10px">
+        <div style="flex:0 0 140px">
+          <label for="qtd">Quantidade por leitura</label>
+          <input id="qtd" type="number" min="1" value="1" inputmode="numeric">
+        </div>
+        <button class="b alt" id="cam">Ler o código por foto</button>
+        <input type="file" id="file" accept="image/*" capture="environment" hidden>
+      </div>
+      <p class="hint">Também dá para usar um leitor USB ou Bluetooth (toque no campo e bipe) ou digitar o número. Para um montinho de peças iguais, bipe uma e coloque a quantidade do montinho.</p>
+      <p class="hint" id="camnote" hidden></p>
+    </div>
+    <div class="card">
+      <h2>Colar uma lista de códigos</h2>
+      <p class="sub" style="margin:0 0 8px">Bipe com qualquer aplicativo de leitura de código de barras do celular, copie a lista que ele gera e cole aqui. Pode ser um código por linha, com ou sem repetição.</p>
+      <label for="lista">Lista de códigos</label>
+      <textarea id="lista" rows="4" placeholder="Cole aqui. Ex.: 7891186409557"></textarea>
+      <div class="row" style="margin-top:8px"><button class="b" id="golista">Contar a lista</button></div>
+      <p class="hint" id="listamsg"></p>
+    </div>
+    <div id="last"></div>
+    <div id="learn" class="card" hidden></div>
+  </section>
+
+  <section id="v-conf" hidden class="wrap" style="gap:12px">
+    <div class="card">
+      <div class="row">
+        <div><label for="q">Buscar produto</label><input id="q" placeholder="Código, letras, nome ou referência"></div>
+        <div style="flex:0 0 190px"><label for="flt">Mostrar</label>
+          <select id="flt"><option value="all">Todos com estoque ou contagem</option><option value="diff">Só com diferença</option><option value="none">Ainda não contados</option><option value="cnt">Já contados</option></select></div>
+      </div>
+      <p class="hint">A planilha de estoque só traz o total por tamanho. A comparação soma todas as cores de cada tamanho.</p>
+    </div>
+    <div id="conflist" class="wrap" style="gap:8px"></div>
+  </section>
+
+  <section id="v-lig" hidden class="wrap" style="gap:12px">
+    <div class="card"><h2>Códigos de barras já ensinados</h2><div class="sub" id="ligsum"></div><div class="list" id="liglist"></div></div>
+  </section>
+
+  <section id="v-exp" hidden class="wrap" style="gap:12px">
+    <div class="card">
+      <h2>Levar a contagem para fora</h2>
+      <p class="sub" style="margin:0 0 10px">Tudo que você bipa fica salvo neste celular, neste navegador. Para eu montar a importação do Bling, baixe a contagem e mande o arquivo para mim na conversa.</p>
+      <div class="row">
+        <button class="b" id="xc">Baixar contagem (CSV)</button>
+        <button class="b alt" id="xl">Baixar ligações (CSV)</button>
+      </div>
+      <div class="row" style="margin-top:10px"><button class="b alt" id="xb">Cópia de segurança (JSON)</button><button class="b alt" id="xr">Restaurar cópia</button><input type="file" id="xf" accept=".json,application/json" hidden></div>
+      <p class="hint" id="xmsg"></p>
+    </div>
+  </section>
+</div>
+
+<script type="application/json" id="dados">{"p":[{"c":"0101","l":"Q","d":"Meia Infantil","x":"","r":"2000","m":"Lupo","b":0,"cor":[],"sz":[]},{"c":"0550","l":"EY","d":"Meia-Calça","x":"LEGGING","r":"2775","m":"Lupo","b":0,"cor":[],"sz":[]},{"c":"0551","l":"DC","d":"Meia Feminina 3/4","x":"","r":"5510/5520","m":"Lupo","b":0,"cor":[],"sz":[]},{"c":"0566","l":"AQ","d":"Meia Infantil soquete","x":"","r":"2000","m":"Lupo","b":0,"cor":[],"sz":[]},{"c":"0568","l":"JY","d":"Meia-Calça","x":"Descalça","r":"5650","m":"Lupo","b":0,"cor":[],"sz":[]},{"c":"0569","l":"GQ","d":"Meia-Calça","x":"Descalça","r":"5765","m":"Lupo","b":0,"cor":[],"sz":[]},{"c":"0571","l":"DC","d":"Meia","x":"MEIANYL","r":"6002","m":"Lupo","b":0,"cor":[],"sz":[]},{"c":"0586","l":"LS","d":"Meia-Calça","x":"Sem punho","r":"5876","m":"Lupo","b":0,"cor":[],"sz":[]},{"c":"0591","l":"EV","d":"Meia-Calça","x":"","r":"","m":"Lupo","b":0,"cor":[],"sz":[]},{"c":"0607","l":"BB","d":"Meia Feminina 7/8","x":"","r":"5570","m":"Lupo","b":0,"cor":[],"sz":[]},{"c":"0612","l":"Q","d":"Meia-Calça","x":"Stretch","r":"5940","m":"Lupo","b":0,"cor":[],"sz":[]},{"c":"0624","l":"AY","d":"Meia-Calça","x":"Desing","r":"","m":"Lupo","b":0,"cor":[],"sz":[]},{"c":"0660","l":"AV","d":"Meia","x":"","r":"","m":"Lupo","b":0,"cor":[],"sz":[]},{"c":"0662","l":"AQ","d":"Meia Masculina","x":"","r":"1110-1100","m":"Lupo","b":0,"cor":[],"sz":[]},{"c":"0670","l":"CF","d":"Meia Masculina Soquete","x":"REEBOK","r":"8700/8714/8715/8717/8720","m":"Lupo","b":0,"cor":[],"sz":[]},{"c":"10001","l":"PB","d":"Soutien","x":"Lycra","r":"Garden WP","m":"Triumph","b":0,"cor":[],"sz":[]},{"c":"10002","l":"PG","d":"Soutien","x":"Lycra","r":"Garden W","m":"Triumph","b":0,"cor":[],"sz":[]},{"c":"10003","l":"NJ","d":"Calcinha","x":"Lycra","r":"Garden Midi","m":"Triumph","b":0,"cor":[],"sz":[]},{"c":"10004","l":"XT","d":"Soutien","x":"Lycra","r":"Garden Body","m":"Triumph","b":0,"cor":[],"sz":[]},{"c":"10005","l":"OC","d":"Calcinha","x":"Lycra","r":"Shape Sensation Midi","m":"Triumph","b":0,"cor":[],"sz":[]},{"c":"10006","l":"PG","d":"Soutien","x":"Lycra","r":"Shape Control N","m":"Triumph","b":0,"cor":[],"sz":[]},{"c":"10007","l":"UF","d":"Bermuda","x":"Lycra","r":"Shape Control","m":"Triumph","b":0,"cor":[],"sz":[]},{"c":"10008","l":"SH","d":"Modelador","x":"Lycra","r":"Shape Control Body","m":"Triumph","b":0,"cor":[],"sz":[]},{"c":"10009","l":"PR","d":"Soutien","x":"Lycra","r":"Havana N","m":"Triumph","b":0,"cor":[],"sz":[]},{"c":"10010","l":"RG","d":"Calcinha","x":"Lycra","r":"Havana Maxi","m":"Triumph","b":0,"cor":[],"sz":[]},{"c":"10011","l":"PD","d":"Calcinha","x":"Lycra","r":"Shape Hot Pant Midi","m":"Triumph","b":0,"cor":[],"sz":[]},{"c":"10012","l":"SS","d":"Soutien","x":"Lycra","r":"Minimizer","m":"Triumph","b":0,"cor":[],"sz":[]},{"c":"10013","l":"PJ","d":"Soutien","x":"Lycra","r":"BLISSY 25180","m":"Triumph","b":1,"cor":[["228","Base"],["48","Mink"],["217","Preto"]],"sz":["44","46","48","50","52","54"]},{"c":"10014","l":"SS","d":"Soutien","x":"Lycra","r":"Shape Control 25182","m":"Triumph","b":1,"cor":[["228","Base"],["48","Mink"],["217","Preto"]],"sz":["42","44","46","48","50"]},{"c":"10015","l":"OQ","d":"Soutien","x":"Lycra","r":"Shape Sensation 24803","m":"Triumph","b":0,"cor":[],"sz":[]},{"c":"10016","l":"US","d":"Soutien","x":"Lycra","r":"Shape Sensation 24803","m":"Triumph","b":0,"cor":[],"sz":[]},{"c":"10017","l":"QC","d":"Soutien","x":"Tomara que caia","r":"Blissy 24708","m":"Triumph","b":1,"cor":[["228","Base"],["48","Mink"],["217","Preto"]],"sz":["42B","42C","44B","44C","46B","46C","48B","50B"]},{"c":"10018","l":"QX","d":"Calcinha","x":"Lycra","r":"V24 Rouge 45106","m":"Triumph","b":0,"cor":[],"sz":[]},{"c":"10042","l":"UL","d":"Modelador","x":"Lycra","r":"Compliment MC","m":"Triumph","b":0,"cor":[],"sz":[]},{"c":"10044","l":"OP","d":"Soutien com reforço","x":"Lycra","r":"Compliment N SC2","m":"Triumph","b":0,"cor":[],"sz":[]},{"c":"10068","l":"LJ","d":"Soutien com reforço","x":"Lycra","r":"DOREEN SC2","m":"Triumph","b":0,"cor":[],"sz":[]},{"c":"10140","l":"LC","d":"Calcinha Biquini","x":"Lycra","r":"STEPY MIDI CB2","m":"Triumph","b":0,"cor":[],"sz":[]},{"c":"10146","l":"NQ","d":"Calcinha","x":"Lycra","r":"STEPY MAXI CC1","m":"Triumph","b":0,"cor":[],"sz":[]},{"c":"10147","l":"PB","d":"Soutien","x":"Lycra","r":"Brigitte N","m":"Triumph","b":0,"cor":[],"sz":[]},{"c":"10148","l":"NC","d":"Calcinha","x":"Lycra","r":"Brigitte Maxi","m":"Triumph","b":0,"cor":[],"sz":[]},{"c":"10149","l":"NC","d":"Calcinha","x":"Lycra","r":"Brigitte Midi","m":"Triumph","b":0,"cor":[],"sz":[]},{"c":"10155","l":"OP","d":"Soutien com reforço","x":"Lycra","r":"Triumph Extra SC","m":"Triumph","b":0,"cor":[],"sz":[]},{"c":"10196","l":"NJ","d":"Calcinha","x":"Modal","r":"BLISSY Midi","m":"Triumph","b":0,"cor":[],"sz":[]},{"c":"10197","l":"NJ","d":"Calcinha","x":"Modal","r":"BLISSY Maxi Lat","m":"Triumph","b":0,"cor":[],"sz":[]},{"c":"10198","l":"QL","d":"Calcinha","x":"Modal","r":"BLISSY Maxi STR","m":"Triumph","b":0,"cor":[],"sz":[]},{"c":"10199","l":"LE","d":"Calcinha","x":"Modal","r":"BLISSY Maxi","m":"Triumph","b":0,"cor":[],"sz":[]},{"c":"10203","l":"MP","d":"Soutien","x":"Lycra","r":"MAMABEL SC 200 BABY CLIC","m":"Triumph","b":0,"cor":[],"sz":[]},{"c":"10257","l":"MS","d":"Soutien com reforço","x":"Lycra","r":"ODETE SC1 SC","m":"Triumph","b":0,"cor":[],"sz":[]},{"c":"10263","l":"DC","d":"Calcinha Tanga","x":"Lycra","r":"Stepy 103 CT","m":"Triumph","b":0,"cor":[],"sz":[]},{"c":"10264","l":"EE","d":"Calcinha","x":"Lycra","r":"Stepy 102 CC","m":"Triumph","b":0,"cor":[],"sz":[]},{"c":"10266","l":"CY","d":"Calcinha Biquini","x":"Lycra","r":"Star 202 CB","m":"Triumph","b":0,"cor":[],"sz":[]},{"c":"10267","l":"CQ","d":"Calcinha Tanga","x":"Lycra","r":"Star 203 CT","m":"Triumph","b":0,"cor":[],"sz":[]},{"c":"10281","l":"RQ","d":"Soutien com arco","x":"Modal","r":"Sloggy SB ROCK","m":"Triumph","b":0,"cor":[],"sz":[]},{"c":"10285","l":"NW","d":"Soutien com arco","x":"Lycra","r":"COSMETIC SB1","m":"Triumph","b":0,"cor":[],"sz":[]},{"c":"10315","l":"EJ","d":"Calcinha","x":"Lycra","r":"STEPY 106 CB","m":"Triumph","b":0,"cor":[],"sz":[]},{"c":"10319","l":"GH","d":"Calcinha","x":"Lycra","r":"Form Beauty CB1","m":"Triumph","b":0,"cor":[],"sz":[]},{"c":"10320","l":"QL","d":"Calcinha","x":"Lycra","r":"Star CC9","m":"Triumph","b":0,"cor":[],"sz":[]},{"c":"10323","l":"ED","d":"Calcinha","x":"Lycra","r":"Star 206 CC","m":"Triumph","b":0,"cor":[],"sz":[]},{"c":"10327","l":"FU","d":"Calcinha","x":"Lycra","r":"Classic 302 CC","m":"Triumph","b":0,"cor":[],"sz":[]},{"c":"10328","l":"FO","d":"Calcinha","x":"Lycra","r":"Sloogi Fresh CT/CB1/CB2","m":"Triumph","b":0,"cor":[],"sz":[]},{"c":"10329","l":"GX","d":"Calcinha","x":"Lycra","r":"Sloogi Fresh CB","m":"Triumph","b":0,"cor":[],"sz":[]},{"c":"10330","l":"NM","d":"Soutien","x":"Lycra","r":"Sloogi Fresh SB","m":"Triumph","b":0,"cor":[],"sz":[]},{"c":"10331","l":"LC","d":"Soutien com arco","x":"Lycra","r":"Amourette 40 SB","m":"Triumph","b":0,"cor":[],"sz":[]},{"c":"10333","l":"KJ","d":"Soutien","x":"Lycra","r":"Amourette 46 SM","m":"Triumph","b":0,"cor":[],"sz":[]},{"c":"10334","l":"GH","d":"Calcinha","x":"Lycra","r":"Amourette 45 CC","m":"Triumph","b":0,"cor":[],"sz":[]},{"c":"10335","l":"GH","d":"Calcinha Biquini","x":"Lycra","r":"Amourette 42 CB","m":"Triumph","b":0,"cor":[],"sz":[]},{"c":"10336","l":"MF","d":"Soutien com arco","x":"Lycra","r":"Compl New Age SB","m":"Triumph","b":0,"cor":[],"sz":[]},{"c":"10337","l":"LO","d":"Soutien","x":"Lycra","r":"Compl New Age SC1","m":"Triumph","b":0,"cor":[],"sz":[]},{"c":"10381","l":"ON","d":"Soutien","x":"LYCRA","r":"CLICK UP 12 SB","m":"Triumph","b":0,"cor":[],"sz":[]},{"c":"10384","l":"FU","d":"Calcinha","x":"LYCRA","r":"T SHIRT 14 CT/13 CB","m":"Triumph","b":0,"cor":[],"sz":[]},{"c":"10385","l":"LW","d":"Soutien","x":"LYCRA","r":"T SHIRT 15 SB","m":"Triumph","b":0,"cor":[],"sz":[]},{"c":"10386","l":"LQ","d":"Soutien","x":"LYCRA","r":"FORM BEAUTY SB1","m":"Triumph","b":0,"cor":[],"sz":[]},{"c":"10393","l":"QY","d":"Soutien com arco","x":"","r":"Sloggy SB LACE","m":"Triumph","b":0,"cor":[],"sz":[]},{"c":"10394","l":"QY","d":"Soutien com arco","x":"","r":"STEPY SOFT 01B WHP","m":"Triumph","b":0,"cor":[],"sz":[]},{"c":"10395","l":"JÁ","d":"Calcinha Biquini","x":"Lycra","r":"Amourette 200 MD1","m":"Triumph","b":0,"cor":[],"sz":[]},{"c":"10397","l":"HP","d":"Calcinha Biquini","x":"Lycra","r":"Corsina 01 Max","m":"Triumph","b":0,"cor":[],"sz":[]},{"c":"10398","l":"HC","d":"Calcinha Biquini","x":"Lycra","r":"Corsina 01 Mid","m":"Triumph","b":0,"cor":[],"sz":[]},{"c":"10399","l":"LH","d":"Soutien","x":"Lycra","r":"Corsina 01 B N","m":"Triumph","b":0,"cor":[],"sz":[]},{"c":"10400","l":"MB","d":"Soutien","x":"Lycra","r":"Corsina 01 B W","m":"Triumph","b":0,"cor":[],"sz":[]},{"c":"10401","l":"JR","d":"Calcinha","x":"Lycra","r":"Desire Max","m":"Triumph","b":0,"cor":[],"sz":[]},{"c":"10402","l":"IP","d":"Calcinha Biquini","x":"Lycra","r":"Desire Mid","m":"Triumph","b":0,"cor":[],"sz":[]},{"c":"10404","l":"QM","d":"Soutien","x":"Lycra","r":"Desire W","m":"Triumph","b":0,"cor":[],"sz":[]},{"c":"10405","l":"NY","d":"Soutien","x":"Lycra","r":"T SHIRT 11 SB","m":"Triumph","b":0,"cor":[],"sz":[]},{"c":"10406","l":"GC","d":"Calcinha","x":"Lycra","r":"T SHIRT 12 CT","m":"Triumph","b":0,"cor":[],"sz":[]},{"c":"10407","l":"HL","d":"Soutien","x":"Lycra","r":"MISS PURE HIP","m":"Triumph","b":0,"cor":[],"sz":[]},{"c":"10408","l":"GT","d":"Calcinha","x":"Lycra","r":"MISS PURE TAN","m":"Triumph","b":0,"cor":[],"sz":[]},{"c":"10409","l":"GD","d":"Calcinha","x":"","r":"SLOOGI MIDI","m":"Triumph","b":0,"cor":[],"sz":[]},{"c":"10410","l":"ED","d":"Calcinha Biquini","x":"Lycra","r":"SL DA SORTE","m":"Triumph","b":0,"cor":[],"sz":[]},{"c":"10411","l":"FI","d":"Calcinha","x":"","r":"Mini Urban","m":"Triumph","b":0,"cor":[],"sz":[]},{"c":"10412","l":"MR","d":"Soutien","x":"","r":"Mini Urban B","m":"Triumph","b":0,"cor":[],"sz":[]},{"c":"10413","l":"OJ","d":"Calcinha","x":"Lycra","r":"CLASSIC SOFT Maxi","m":"Triumph","b":0,"cor":[],"sz":[]},{"c":"10414","l":"TV","d":"Soutien","x":"com aro","r":"CLASSIC SOFT SB/SW","m":"Triumph","b":0,"cor":[],"sz":[]},{"c":"10415","l":"XW","d":"Soutien","x":"sem aro","r":"CLASSIC SOFT N","m":"Triumph","b":0,"cor":[],"sz":[]},{"c":"10416","l":"GT","d":"Calcinha","x":"","r":"SLOOGI MAXI","m":"Triumph","b":0,"cor":[],"sz":[]},{"c":"10417","l":"IN","d":"Calcinha","x":"2 PEÇAS","r":"SLOOGI MIDI","m":"Triumph","b":0,"cor":[],"sz":[]},{"c":"10418","l":"IB","d":"Calcinha","x":"2 PEÇAS","r":"SLOOGI MINI","m":"Triumph","b":0,"cor":[],"sz":[]},{"c":"10419","l":"HU","d":"Calcinha","x":"Lycra","r":"CLICK UP TAN","m":"Triumph","b":0,"cor":[],"sz":[]},{"c":"10420","l":"QA","d":"Soutien","x":"Lycra","r":"CLICK UP WHU","m":"Triumph","b":0,"cor":[],"sz":[]},{"c":"10421","l":"CN","d":"Calcinha","x":"Lycra","r":"HAPPY NEW","m":"Triumph","b":0,"cor":[],"sz":[]},{"c":"10422","l":"QH","d":"Soutien","x":"Lycra","r":"COMFORT C","m":"Triumph","b":0,"cor":[],"sz":[]},{"c":"10423","l":"TY","d":"Soutien","x":"","r":"LADYFORM N","m":"Triumph","b":0,"cor":[],"sz":[]},{"c":"10658","l":"FD","d":"Meia-Calça","x":"fio 60","r":"5825","m":"Lupo","b":0,"cor":[],"sz":[]},{"c":"10663","l":"GK","d":"Kit Meia soquete","x":"masc","r":"","m":"Lupo","b":0,"cor":[],"sz":[]},{"c":"10798","l":"CW","d":"Meia-Calça Infantil","x":"Bordada","r":"2515","m":"Lupo","b":0,"cor":[],"sz":[]},{"c":"10857","l":"EZ","d":"Blusa Feminina","x":"2º PELE","r":"845.01","m":"Lupo","b":0,"cor":[],"sz":[]},{"c":"10858","l":"IL","d":"Blusa Feminina","x":"","r":"9990","m":"Lupo","b":0,"cor":[],"sz":[]},{"c":"10859","l":"GW","d":"Meia-Calça","x":"CANELADA","r":"5828","m":"Lupo","b":0,"cor":[],"sz":[]},{"c":"10946","l":"UC","d":"Meia soquete","x":"","r":"2630","m":"Lupo","b":0,"cor":[],"sz":[]},{"c":"10947","l":"UC","d":"Meia Masculina","x":"CLASSICA","r":"1113","m":"Lupo","b":0,"cor":[],"sz":[]},{"c":"10948","l":"CN","d":"Meia","x":"","r":"4270","m":"Lupo","b":0,"cor":[],"sz":[]},{"c":"10949","l":"AX","d":"Meia Infantil","x":"","r":"2000","m":"Lupo","b":0,"cor":[],"sz":[]},{"c":"15008","l":"EW","d":"Saida de banho","x":"Lycra","r":"05","m":"Triumph","b":0,"cor":[],"sz":[]},{"c":"15011","l":"DB","d":"Short e blusa","x":"Lycra","r":"94350","m":"Triumph","b":0,"cor":[],"sz":[]},{"c":"15012","l":"DD","d":"Short Feminino","x":"Lycra","r":"318","m":"Triumph","b":0,"cor":[],"sz":[]},{"c":"15013","l":"DW","d":"Short Feminino","x":"Lycra","r":"319","m":"Triumph","b":0,"cor":[],"sz":[]},{"c":"15015","l":"GU","d":"Bermuda e bustier","x":"Lycra","r":"","m":"Triumph","b":0,"cor":[],"sz":[]},{"c":"15016","l":"EW","d":"Bermuda e bustier","x":"Lycra","r":"","m":"Triumph","b":0,"cor":[],"sz":[]},{"c":"15017","l":"CM","d":"Short Feminino","x":"Lycra","r":"498","m":"Triumph","b":0,"cor":[],"sz":[]},{"c":"15018","l":"CD","d":"Blusa Feminina","x":"Lycra","r":"497","m":"Triumph","b":0,"cor":[],"sz":[]},{"c":"15019","l":"GE","d":"Saia","x":"Lycra","r":"499","m":"Triumph","b":0,"cor":[],"sz":[]},{"c":"15022","l":"CD","d":"Short Feminino","x":"Lycra","r":"520","m":"Triumph","b":0,"cor":[],"sz":[]},{"c":"15026","l":"FX","d":"Short Feminino","x":"Lycra","r":"951","m":"Triumph","b":0,"cor":[],"sz":[]},{"c":"15101","l":"BI","d":"Top","x":"Lycra","r":"645","m":"Triumph","b":0,"cor":[],"sz":[]},{"c":"15102","l":"DN","d":"Top","x":"Lycra","r":"643","m":"Triumph","b":0,"cor":[],"sz":[]},{"c":"15103","l":"DW","d":"Top","x":"Lycra","r":"643/1","m":"Triumph","b":0,"cor":[],"sz":[]},{"c":"15107","l":"BU","d":"Short Feminino","x":"Lycra","r":"678","m":"Triumph","b":0,"cor":[],"sz":[]},{"c":"17018","l":"TK","d":"Cuecas adulto","x":"BOXER KIT 2PCS","r":"436","m":"Lupo","b":0,"cor":[],"sz":[]},{"c":"17019","l":"RJ","d":"Cuecas adulto","x":"BOXER KIT 2PCS","r":"523","m":"Lupo","b":0,"cor":[],"sz":[]},{"c":"17037","l":"LE","d":"Cuecas adulto","x":"","r":"","m":"Lupo","b":0,"cor":[],"sz":[]},{"c":"17041","l":"LH","d":"Cuecas adulto","x":"Algodao","r":"461/475/784","m":"Lupo","b":0,"cor":[],"sz":[]},{"c":"17042","l":"KH","d":"Cuecas adulto","x":"Algodao","r":"523","m":"Lupo","b":0,"cor":[],"sz":[]},{"c":"17043","l":"HU","d":"Cuecas adulto","x":"Algodao","r":"603/675","m":"Lupo","b":0,"cor":[],"sz":[]},{"c":"17044","l":"UN","d":"Cuecas adulto","x":"Microfibra Text","r":"533/733/441","m":"Lupo","b":0,"cor":[],"sz":[]},{"c":"17045","l":"QT","d":"Cuecas adulto","x":"Algodao","r":"671-766-436","m":"Lupo","b":0,"cor":[],"sz":[]},{"c":"17046","l":"RL","d":"Cuecas adulto","x":"Microfibra","r":"17800","m":"Lupo","b":1,"cor":[["2560","Azul"],["8000","Cinza Mescla"],["9760","Preto Mescla"]],"sz":["XG","XXG","XXXG"]},{"c":"17047","l":"MW","d":"Cuecas adulto","x":"Slip","r":"691","m":"Lupo","b":1,"cor":[["9990","Preto"],["1110","Branca"],["2800","Marinho"]],"sz":["G","GG","M","P","XG"]},{"c":"18035","l":"PV","d":"Cinta Modeladora","x":"","r":"47182","m":"Lupo","b":0,"cor":[],"sz":[]},{"c":"18036","l":"XY","d":"Cinta Modeladora","x":"","r":"47183","m":"Lupo","b":0,"cor":[],"sz":[]},{"c":"18037","l":"RG","d":"Cinta Modeladora","x":"Fio","r":"41010","m":"Lupo","b":0,"cor":[],"sz":[]},{"c":"18094","l":"KX","d":"Meia-Calça","x":"CORACAO/ARRASTAO","r":"5758-5842-5097","m":"Lupo","b":0,"cor":[],"sz":[]},{"c":"18095","l":"IA","d":"Meia-Calça","x":"lobinha legging","r":"2544","m":"Lupo","b":0,"cor":[],"sz":[]},{"c":"18117","l":"IA","d":"Conjunto","x":"Mascara","r":"","m":"Lupo","b":0,"cor":[],"sz":[]},{"c":"18235","l":"NJ","d":"Meia-Calça","x":"FIO 150","r":"5806","m":"Lupo","b":0,"cor":[],"sz":[]},{"c":"18346","l":"HD","d":"Meia-Calça","x":"CANELADA","r":"3235/3240","m":"Lupo","b":0,"cor":[],"sz":[]},{"c":"18347","l":"DV","d":"Meia Feminina 3/4","x":"","r":"5531","m":"Lupo","b":0,"cor":[],"sz":[]},{"c":"18348","l":"GK","d":"Meia-Calça","x":"RISCA LARGA/ESCOCESA/PATCHWORK","r":"5843/5846/5851","m":"Lupo","b":0,"cor":[],"sz":[]},{"c":"18406","l":"PS","d":"Blusa Feminina","x":"","r":"45136","m":"Lupo","b":0,"cor":[],"sz":[]},{"c":"18408","l":"OZ","d":"Blusa Feminina","x":"","r":"45152","m":"Lupo","b":0,"cor":[],"sz":[]},{"c":"18409","l":"PO","d":"Blusa Feminina","x":"","r":"45161","m":"Lupo","b":0,"cor":[],"sz":[]},{"c":"18461","l":"EZ","d":"Meia Infantil soquete","x":"","r":"8920","m":"Lupo","b":0,"cor":[],"sz":[]},{"c":"18462","l":"GT","d":"Meia soquete","x":"MEIAO","r":"8950","m":"Lupo","b":0,"cor":[],"sz":[]},{"c":"18463","l":"CJ","d":"Meia soquete","x":"WALK","r":"3240/3235","m":"Lupo","b":0,"cor":[],"sz":[]},{"c":"18467","l":"RG","d":"Meia-Calça","x":"fio 80","r":"5852","m":"Lupo","b":0,"cor":[],"sz":[]},{"c":"18468","l":"HE","d":"Meia","x":"LOOK 3/4","r":"4450","m":"Lupo","b":0,"cor":[],"sz":[]},{"c":"18469","l":"JD","d":"Meia Infantil","x":"LOBINHA COTTON","r":"2526","m":"Lupo","b":0,"cor":[],"sz":[]},{"c":"1852","l":"CG","d":"Blusa Feminina","x":"2ª PELE","r":"805","m":"Lupo","b":0,"cor":[],"sz":[]},{"c":"18560","l":"QZ","d":"Meia-Calça","x":"Invisivel fio7 fio6","r":"5870","m":"Lupo","b":1,"cor":[["7800","Brown"],["6930","Cacao"],["6700","Natural Peach"],["6540","Pó de Arroz"],["6940","Praline"],["9990","Preto"]],"sz":["G","GG","M","P"]},{"c":"18561","l":"QZ","d":"Meia-Calça","x":"Dedos Livres fio7 fio6","r":"5871","m":"Lupo","b":0,"cor":[],"sz":[]},{"c":"18562","l":"BV","d":"Meia soquete","x":"ADULTO RIP CURL","r":"9300","m":"Lupo","b":0,"cor":[],"sz":[]},{"c":"18563","l":"GM","d":"Meia soquete","x":"Cavalera Teen","r":"3715","m":"Lupo","b":0,"cor":[],"sz":[]},{"c":"18564","l":"BZ","d":"Meia soquete","x":"Reebok","r":"8860","m":"Lupo","b":0,"cor":[],"sz":[]},{"c":"18565","l":"EB","d":"Meia soquete","x":"Reebok","r":"8700","m":"Lupo","b":0,"cor":[],"sz":[]},{"c":"18566","l":"BX","d":"Meia soquete","x":"ADULTO RIP CURL","r":"9240","m":"Lupo","b":0,"cor":[],"sz":[]},{"c":"18567","l":"CF","d":"Meia soquete","x":"Cavalera Teen","r":"3725","m":"Lupo","b":0,"cor":[],"sz":[]},{"c":"18568","l":"QR","d":"Calça Feminina","x":"MAX CORE SPORT","r":"7105","m":"Lupo","b":0,"cor":[],"sz":[]},{"c":"18569","l":"II","d":"Meia soquete","x":"Antiderrapante","r":"1315","m":"Lupo","b":0,"cor":[],"sz":[]},{"c":"18570","l":"BI","d":"Meia","x":"SAPATILHA EVERLAST","r":"9870","m":"Lupo","b":0,"cor":[],"sz":[]},{"c":"18571","l":"DG","d":"Meia soquete","x":"Sportwear Masc","r":"1210","m":"Lupo","b":0,"cor":[],"sz":[]},{"c":"18572","l":"IC","d":"Meia soquete","x":"Feminina","r":"4200","m":"Lupo","b":0,"cor":[],"sz":[]},{"c":"18573","l":"ER","d":"Meia soquete","x":"Forum Masc","r":"1200","m":"Lupo","b":0,"cor":[],"sz":[]},{"c":"18574","l":"GE","d":"Meia soquete","x":"Sportwear Masc","r":"1210/1250","m":"Lupo","b":0,"cor":[],"sz":[]},{"c":"18575","l":"DL","d":"Meia soquete","x":"","r":"4276","m":"Lupo","b":0,"cor":[],"sz":[]},{"c":"18576","l":"JK","d":"Meia-Calça","x":"STYLE","r":"5688","m":"Lupo","b":0,"cor":[],"sz":[]},{"c":"18577","l":"FQ","d":"Meia soquete","x":"Sportwear Masc","r":"1215","m":"Lupo","b":0,"cor":[],"sz":[]},{"c":"18578","l":"ER","d":"Meia soquete","x":"Sportwear Masc","r":"1275-3235","m":"Lupo","b":0,"cor":[],"sz":[]},{"c":"18666","l":"MR","d":"Meia-Calça","x":"fio 80","r":"5858","m":"Lupo","b":1,"cor":[["9990","Preto"],["2800","Marinho"],["5920","Carmim"],["6540","Pó de Arroz"]],"sz":["G","GG","M","P"]},{"c":"18669","l":"SP","d":"Calça Feminina","x":"Legging","r":"41845","m":"Lupo","b":0,"cor":[],"sz":[]},{"c":"18675","l":"NI","d":"Bermuda","x":"","r":"5895","m":"Lupo","b":0,"cor":[],"sz":[]},{"c":"18677","l":"CM","d":"Meia soquete","x":"","r":"","m":"Lupo","b":0,"cor":[],"sz":[]},{"c":"18678","l":"ER","d":"Meia soquete","x":"","r":"3860-4570","m":"Lupo","b":0,"cor":[],"sz":[]},{"c":"18679","l":"GU","d":"Meia","x":"kit","r":"14270","m":"Lupo","b":0,"cor":[],"sz":[]},{"c":"18681","l":"OO","d":"Calça Feminina","x":"Legging","r":"41852","m":"Lupo","b":0,"cor":[],"sz":[]},{"c":"18684","l":"NB","d":"Meia-Calça","x":"BERMUDA SLIM EMANA","r":"5692","m":"Lupo","b":0,"cor":[],"sz":[]},{"c":"18697","l":"NO","d":"Meia-Calça","x":"FIO 40 PLUS","r":"5837","m":"Lupo","b":1,"cor":[["9990","Preto"],["6540","Pó de Arroz"]],"sz":["XG","XXG"]},{"c":"18698","l":"NO","d":"Meia-Calça","x":"FIO 20 PLUS","r":"5795","m":"Lupo","b":0,"cor":[],"sz":[]},{"c":"18699","l":"HU","d":"Meia-Calça","x":"Make up power","r":"5766","m":"Lupo","b":0,"cor":[],"sz":[]},{"c":"18701","l":"JI","d":"Meia soquete","x":"","r":"8730","m":"Lupo","b":0,"cor":[],"sz":[]},{"c":"19311","l":"","d":"Meia soquete","x":"Pilates","r":"4945","m":"Lupo","b":0,"cor":[],"sz":[]},{"c":"19334","l":"TW","d":"Calça Feminina","x":"LEGGING CROCO","r":"41840","m":"Lupo","b":0,"cor":[],"sz":[]},{"c":"19464","l":"CX","d":"Meia soquete","x":"SPEEDO/PUMA","r":"7820-14000","m":"Lupo","b":0,"cor":[],"sz":[]},{"c":"20026","l":"KU","d":"Meia soquete","x":"Pilates","r":"4942","m":"Lupo","b":0,"cor":[],"sz":[]},{"c":"20048","l":"JÁ","d":"Meia","x":"LOOK 3/4","r":"4455","m":"Lupo","b":0,"cor":[],"sz":[]},{"c":"20050","l":"MJ","d":"Meia","x":"kit 3","r":"3225","m":"Lupo","b":0,"cor":[],"sz":[]},{"c":"26913","l":"EI","d":"Meia","x":"","r":"4575-4576","m":"Lupo","b":0,"cor":[],"sz":[]},{"c":"2889","l":"FJ","d":"Meia-Calça Infantil","x":"","r":"2570/2515","m":"Lupo","b":0,"cor":[],"sz":[]},{"c":"2890","l":"EG","d":"Meia-Calça Infantil","x":"","r":"2571","m":"Lupo","b":0,"cor":[],"sz":[]},{"c":"30080","l":"CA","d":"Meia Infantil","x":"SOQUETINHA","r":"5530","m":"Lupo","b":0,"cor":[],"sz":[]},{"c":"30093","l":"HY","d":"Meia-Calça","x":"NEWS","r":"5680","m":"Lupo","b":1,"cor":[["7800","Brown"],["6930","Cacao"],["7630","Castanho"],["6700","Natural Peach"]],"sz":["G","GG","M","P"]},{"c":"30551","l":"RF","d":"Meia-Calça","x":"fio 80 texturizada","r":"5765","m":"Lupo","b":0,"cor":[],"sz":[]},{"c":"30557","l":"KZ","d":"Meia soquete","x":"","r":"4571","m":"Lupo","b":0,"cor":[],"sz":[]},{"c":"30579","l":"JÁ","d":"Meia-Calça","x":"Antiderrapante","r":"5867","m":"Lupo","b":0,"cor":[],"sz":[]},{"c":"30586","l":"AQ","d":"Meia-Calça","x":"Lycra","r":"","m":"Lupo","b":0,"cor":[],"sz":[]},{"c":"30591","l":"FB","d":"Meia Masculina","x":"","r":"3290","m":"Lupo","b":0,"cor":[],"sz":[]},{"c":"30607","l":"EN","d":"Meia Feminina 7/8","x":"","r":"5570","m":"Lupo","b":0,"cor":[],"sz":[]},{"c":"30616","l":"BN","d":"Meia-Calça","x":"WALK","r":"7899","m":"Lupo","b":0,"cor":[],"sz":[]},{"c":"30629","l":"FG","d":"Meia-Calça","x":"CLASSICA FINA","r":"5760","m":"Lupo","b":1,"cor":[["1000","Branco Antártida"],["6930","Cacao"],["7780","Café"],["6700","Natural Peach"],["6540","Pó de Arroz"],["6940","Praline"],["9990","Preto"]],"sz":["G","GG","M","P"]},{"c":"30710","l":"AK","d":"Meia Infantil soquete","x":"Sapatilha","r":"2620","m":"Lupo","b":0,"cor":[],"sz":[]},{"c":"30730","l":"BU","d":"Meia-Calça","x":"","r":"","m":"Lupo","b":0,"cor":[],"sz":[]},{"c":"31850","l":"MU","d":"Short","x":"UP LINE","r":"5690","m":"Lupo","b":1,"cor":[["6006","Nude"],["6540","Pó de Arroz"],["9990","Preto"]],"sz":["G","GG","M","P","XG"]},{"c":"34022","l":"IW","d":"Meia soquete","x":"Pilates","r":"3310-003","m":"Lupo","b":0,"cor":[],"sz":[]},{"c":"34027","l":"NF","d":"Blusa Feminina","x":"SEGUNDA PELE","r":"845","m":"Lupo","b":0,"cor":[],"sz":[]},{"c":"34028","l":"ML","d":"Blusa Feminina","x":"SEGUNDA PELE","r":"800","m":"Lupo","b":0,"cor":[],"sz":[]},{"c":"3702","l":"Z","d":"Meia","x":"Sapatilha","r":"795","m":"Lupo","b":0,"cor":[],"sz":[]},{"c":"37021","l":"II","d":"Meia-Calça Infantil","x":"Opaca Fio40","r":"2530","m":"Lupo","b":0,"cor":[],"sz":[]},{"c":"37022","l":"LP","d":"Meia-Calça Infantil","x":"Ballet","r":"2520","m":"Lupo","b":0,"cor":[],"sz":[]},{"c":"37023","l":"QZ","d":"Meia-Calça Infantil","x":"Ballet","r":"2588","m":"Lupo","b":0,"cor":[],"sz":[]},{"c":"37410","l":"NL","d":"Cuecas adulto","x":"","r":"0587-0663","m":"Lupo","b":0,"cor":[],"sz":[]},{"c":"37534","l":"CF","d":"Meia-Calça","x":"","r":"0860","m":"Lupo","b":0,"cor":[],"sz":[]},{"c":"37606","l":"IU","d":"Cuecas adulto","x":"","r":"0784","m":"Lupo","b":0,"cor":[],"sz":[]},{"c":"39900","l":"DE","d":"Meia Feminina 5/8","x":"","r":"4590","m":"Lupo","b":0,"cor":[],"sz":[]},{"c":"39901","l":"NI","d":"Meia-Calça","x":"Arrastão","r":"5095","m":"Lupo","b":0,"cor":[],"sz":[]},{"c":"39902","l":"AD","d":"Meia Infantil","x":"","r":"2001","m":"Lupo","b":0,"cor":[],"sz":[]},{"c":"39903","l":"AY","d":"Meia","x":"","r":"2005","m":"Lupo","b":0,"cor":[],"sz":[]},{"c":"39904","l":"BK","d":"Meia soquete","x":"WALK","r":"3300-3470-3471","m":"Lupo","b":0,"cor":[],"sz":[]},{"c":"39905","l":"DV","d":"Meia Feminina 3/4","x":"C/ PONTEIRA","r":"4535","m":"Lupo","b":0,"cor":[],"sz":[]},{"c":"39906","l":"BN","d":"Meia Feminina Soquete","x":"","r":"4425","m":"Lupo","b":0,"cor":[],"sz":[]},{"c":"39907","l":"CR","d":"Meia Feminina Soquete","x":"","r":"","m":"Lupo","b":0,"cor":[],"sz":[]},{"c":"39908","l":"FX","d":"Meia Feminina 3/4","x":"3/4 FIO 40","r":"5550","m":"Lupo","b":1,"cor":[["1000","Branco Antártida"],["6540","Pó de Arroz"],["9990","Preto"]],"sz":["ÚNICO"]},{"c":"39910","l":"AL","d":"Meia Infantil","x":"","r":"2083-2086","m":"Lupo","b":0,"cor":[],"sz":[]},{"c":"39912","l":"BB","d":"Meia juvenil","x":"HELLO KITTY","r":"2410-4520","m":"Lupo","b":0,"cor":[],"sz":[]},{"c":"39913","l":"EX","d":"Meia-Calça Infantil","x":"FIO 80","r":"","m":"Lupo","b":0,"cor":[],"sz":[]},{"c":"39914","l":"IN","d":"Cuecas adulto","x":"SLIP","r":"524","m":"Lupo","b":0,"cor":[],"sz":[]},{"c":"39915","l":"AT","d":"Meia soquete","x":"","r":"2830-2630","m":"Lupo","b":0,"cor":[],"sz":[]},{"c":"39916","l":"EM","d":"Meia Feminina 3/4","x":"C/ PONTEIRA","r":"5540/5515","m":"Lupo","b":0,"cor":[],"sz":[]},{"c":"39919","l":"CE","d":"Meia soquete","x":"","r":"","m":"Lupo","b":0,"cor":[],"sz":[]},{"c":"39931","l":"ER","d":"Meia-Calça","x":"FIO 80","r":"","m":"Lupo","b":0,"cor":[],"sz":[]},{"c":"4569","l":"CR","d":"Meia Infantil","x":"STAR WARS","r":"2660","m":"Lupo","b":0,"cor":[],"sz":[]},{"c":"4570","l":"XA","d":"Meia-Calça","x":"7/8 COM RENDA","r":"5660","m":"Lupo","b":1,"cor":[["9990","Preto"]],"sz":["G","M"]},{"c":"4708","l":"BC","d":"Meia","x":"MALHAÇÃO","r":"","m":"Lupo","b":0,"cor":[],"sz":[]},{"c":"4710","l":"RE","d":"Meia-Calça","x":"FIO 15","r":"5895","m":"Lupo","b":0,"cor":[],"sz":[]},{"c":"4711","l":"BD","d":"Meia","x":"HELLO KITTY","r":"2410-2130","m":"Lupo","b":0,"cor":[],"sz":[]},{"c":"4712","l":"BF","d":"Meia","x":"","r":"2430-2040","m":"Lupo","b":0,"cor":[],"sz":[]},{"c":"4919","l":"LX","d":"Meia-Calça","x":"BERMUDA UP LINE","r":"5696","m":"Lupo","b":0,"cor":[],"sz":[]},{"c":"4920","l":"QU","d":"Meia-Calça","x":"BERMUDA UP LINE","r":"5697","m":"Lupo","b":0,"cor":[],"sz":[]},{"c":"5356","l":"XK","d":"Blusa","x":"","r":"45138","m":"Lupo","b":0,"cor":[],"sz":[]},{"c":"5453","l":"TR","d":"Calça Feminina","x":"","r":"","m":"Lupo","b":0,"cor":[],"sz":[]},{"c":"5754","l":"DE","d":"Meia Feminina 3/4","x":"Sapatilha dedos livres","r":"5521","m":"Lupo","b":0,"cor":[],"sz":[]},{"c":"6149","l":"FB","d":"Meia soquete","x":"FEMININA","r":"4580","m":"Lupo","b":0,"cor":[],"sz":[]},{"c":"6893","l":"AT","d":"Meia Infantil","x":"RECEM NASCIDO","r":"2001","m":"Lupo","b":0,"cor":[],"sz":[]},{"c":"6894","l":"AR","d":"Meia Infantil","x":"BABY","r":"2020","m":"Lupo","b":0,"cor":[],"sz":[]},{"c":"6895","l":"AO","d":"Meia Infantil","x":"BABY SNOOPY","r":"2084","m":"Lupo","b":0,"cor":[],"sz":[]},{"c":"6951","l":"LY","d":"Meia-Calça","x":"Risca atras","r":"1696-5685","m":"Lupo","b":0,"cor":[],"sz":[]},{"c":"6952","l":"FB","d":"Meia Masculina","x":"SPORTWEAR","r":"1800","m":"Lupo","b":0,"cor":[],"sz":[]},{"c":"6954","l":"NM","d":"Meia-Calça","x":"FIO 80","r":"5805cx","m":"Lupo","b":1,"cor":[["9990","Preto"]],"sz":["G","GG","M","P"]},{"c":"6956","l":"KP","d":"Meia-Calça","x":"OPACA","r":"5830","m":"Lupo","b":1,"cor":[["9990","Preto"],["1000","Branco Antártida"],["2300","Blue Nights"],["5680","Vermelho Intenso"],["6540","Pó de Arroz"],["7570","Café"]],"sz":["G","GG","M","P"]},{"c":"6960","l":"BI","d":"Meia Infantil soquete","x":"HOT WHELLS-BARBIE","r":"2280-2790","m":"Lupo","b":0,"cor":[],"sz":[]},{"c":"6961","l":"BJ","d":"Meia Infantil soquete","x":"BATMAN","r":"2340","m":"Lupo","b":0,"cor":[],"sz":[]},{"c":"6962","l":"IX","d":"Meia","x":"Pilates","r":"3286-3115","m":"Lupo","b":0,"cor":[],"sz":[]},{"c":"6970","l":"HE","d":"Meia Masculina","x":"CLASSICA","r":"1110/1160","m":"Lupo","b":0,"cor":[],"sz":[]},{"c":"6971","l":"BX","d":"Meia Masculina","x":"CLASSICA","r":"1150","m":"Lupo","b":0,"cor":[],"sz":[]},{"c":"6973","l":"DS","d":"Meia Infantil","x":"FIO 80 MICROFIBRA","r":"2576","m":"Lupo","b":0,"cor":[],"sz":[]},{"c":"6974","l":"ET","d":"Meia-Calça","x":"FRESHLINE","r":"5970","m":"Lupo","b":0,"cor":[],"sz":[]},{"c":"70129","l":"EM","d":"Meia soquete","x":"KIT 3PCS","r":"","m":"Lupo","b":0,"cor":[],"sz":[]},{"c":"7021","l":"AT","d":"Meia-Calça Infantil","x":"Lycra ballet","r":"","m":"Lupo","b":0,"cor":[],"sz":[]},{"c":"7534","l":"HH","d":"Meia-Calça","x":"ESSENCIAL","r":"5770","m":"Lupo","b":1,"cor":[["6700","Natural Peach"],["6540","Pó de Arroz"],["9990","Preto"]],"sz":["G","GG","M","P"]},{"c":"7539","l":"JK","d":"Meia-Calça","x":"MAKE UP","r":"5762","m":"Lupo","b":0,"cor":[],"sz":[]},{"c":"8219","l":"EN","d":"Meia soquete","x":"","r":"3250","m":"Lupo","b":0,"cor":[],"sz":[]},{"c":"9047","l":"EE","d":"Meia soquete","x":"","r":"3225/3270","m":"Lupo","b":0,"cor":[],"sz":[]},{"c":"9048","l":"UM","d":"Meia soquete","x":"KIT ADULTO S/ CANO","r":"3226","m":"Lupo","b":0,"cor":[],"sz":[]},{"c":"9049","l":"BI","d":"Meia soquete","x":"","r":"7200/7205/7290","m":"Lupo","b":0,"cor":[],"sz":[]},{"c":"9126","l":"RB","d":"Blusa Feminina","x":"","r":"45137","m":"Lupo","b":0,"cor":[],"sz":[]},{"c":"9129","l":"TY","d":"Blusa Feminina","x":"","r":"45287","m":"Lupo","b":0,"cor":[],"sz":[]},{"c":"9130","l":"TS","d":"Blusa Feminina","x":"","r":"17747","m":"Lupo","b":0,"cor":[],"sz":[]},{"c":"9260","l":"QD","d":"Calça Feminina","x":"","r":"71523","m":"Lupo","b":0,"cor":[],"sz":[]},{"c":"9287","l":"KY","d":"Calcinha","x":"Biquini","r":"40600","m":"Lupo","b":0,"cor":[],"sz":[]},{"c":"9288","l":"QT","d":"Calcinha","x":"Biquini","r":"40400","m":"Lupo","b":0,"cor":[],"sz":[]},{"c":"9290","l":"NZ","d":"Calcinha","x":"Control Top","r":"40800","m":"Lupo","b":0,"cor":[],"sz":[]},{"c":"9291","l":"NG","d":"Calcinha","x":"","r":"40300","m":"Lupo","b":0,"cor":[],"sz":[]},{"c":"9292","l":"NK","d":"Soutien","x":"","r":"41100","m":"Lupo","b":0,"cor":[],"sz":[]},{"c":"9294","l":"OC","d":"Calcinha","x":"Redutora","r":"41000","m":"Lupo","b":0,"cor":[],"sz":[]},{"c":"9295","l":"XI","d":"Calcinha","x":"Redutora","r":"41010","m":"Lupo","b":0,"cor":[],"sz":[]},{"c":"9297","l":"UJ","d":"Blusa Feminina","x":"","r":"71012","m":"Lupo","b":0,"cor":[],"sz":[]},{"c":"9307","l":"OX","d":"Bermuda","x":"","r":"5696","m":"Lupo","b":0,"cor":[],"sz":[]},{"c":"9339","l":"FY","d":"Meia soquete","x":"","r":"3265","m":"Lupo","b":0,"cor":[],"sz":[]},{"c":"9340","l":"EW","d":"Meia-Calça","x":"FIO 70 LISTRADA","r":"5026/5023","m":"Lupo","b":0,"cor":[],"sz":[]},{"c":"9631","l":"OM","d":"Soutien","x":"Top","r":"41901","m":"Lupo","b":0,"cor":[],"sz":[]},{"c":"9632","l":"QG","d":"Soutien","x":"Top","r":"41902","m":"Lupo","b":0,"cor":[],"sz":[]},{"c":"9634","l":"QX","d":"Soutien","x":"Top","r":"41300","m":"Lupo","b":0,"cor":[],"sz":[]},{"c":"9819","l":"EW","d":"Meia soquete","x":"FEMININA","r":"4591","m":"Lupo","b":0,"cor":[],"sz":[]},{"c":"NKATI MQ","l":"DQ","d":"Macaquinho Noite","x":"Jersey","r":"KATIA MQ","m":"Triumph","b":0,"cor":[],"sz":[]},{"c":"NMADE NC","l":"HY","d":"Camisola","x":"Jersey","r":"MADELEINE NC","m":"Triumph","b":0,"cor":[],"sz":[]},{"c":"NMONI MQ","l":"CZ","d":"Macaquinho Noite","x":"Jersey","r":"MONIQUE MQ","m":"Triumph","b":0,"cor":[],"sz":[]},{"c":"NSOFI NC","l":"IN","d":"Camisola","x":"Jersey","r":"SOFIA NC","m":"Triumph","b":0,"cor":[],"sz":[]}],"base":{"0550":{"P":1,"ÚNICO":2},"0551":{"ÚNICO":118},"0566":{"ÚNICO":2},"0568":{"G":4,"M":36,"P":43},"0569":{"G":1,"M":10},"0571":{"ÚNICO":46},"0586":{"P":4},"0591":{"ÚNICO":2},"0612":{"ÚNICO":7},"0624":{"02":3,"03":2},"0662":{"ÚNICO":2},"10001":{"44":1,"46":1,"48":1},"10002":{"44":1,"46":2,"50":1},"10003":{"M":1,"XG":2},"10005":{"42":1,"G":2,"M":5,"SG":2,"XG":4},"10006":{"44":7,"46":4,"48":3,"50":2,"52":10,"54":10,"56":11},"10007":{"G":16,"M":15,"SG":6,"XG":14},"10009":{"44":2,"46":1,"48":2},"10010":{"G":2,"XG":6},"10011":{"G":6,"M":5,"P":5,"SG":5,"XG":5},"10012":{"52":2,"54":3,"56":9},"10013":{"46":6,"48":6,"50":5,"52":5,"54":3},"10014":{"42":1,"44":6,"46":4,"48":1,"50":5},"10015":{"46":1,"48":1,"50":2},"10016":{"G":5,"M":4,"P":2,"XG":5},"10017":{"44":3,"46":6,"48":6,"50":6},"10018":{"G":3,"M":2},"10042":{"42":2,"44":5,"52":1},"10044":{"44":18,"46":11,"48":6,"50":14,"52":23},"10068":{"50":4,"52":3},"10140":{"42":3,"48":6,"50":2},"10146":{"G":14,"M":13,"SG":1,"XG":12},"10147":{"44":8,"46":3,"48":2,"50":2,"52":3},"10148":{"G":6,"M":8,"SG":4,"XG":14},"10149":{"M":2,"SG":4,"XG":6},"10155":{"44":23,"46":9,"48":6,"50":18,"52":10,"54":2},"10196":{"G":7,"XG":9},"10197":{"G":2,"M":3,"SG":8,"XG":9},"10198":{"G":3,"M":6,"XG":6},"10199":{"G":4,"M":1,"SG":4,"XG":9},"10203":{"44":2,"46":2},"10257":{"46":1,"50":4,"52":15},"10263":{"G":1,"M":1,"P":16},"10264":{"G":3,"XG":1},"10266":{"P":1},"10281":{"42":1},"10285":{"40":1},"10315":{"G":2,"M":1},"10319":{"42":4,"44":10,"46":7},"10320":{"G":1,"M":3,"SG":10},"10323":{"G":1,"XG":1},"10327":{"44":12},"10328":{"G":31,"M":34,"P":20},"10329":{"G":1,"M":1},"10330":{"44":1},"10331":{"46":1},"10333":{"44":1,"46":1,"48":3,"50":4},"10334":{"M":1},"10335":{"G":5,"M":3,"P":6},"10336":{"52":5},"10337":{"50":1,"52":1},"10381":{"42":1,"G":2,"M":1},"10384":{"M":3,"P":10,"XG":1},"10385":{"44":7,"46":1,"48":4,"50":3},"10386":{"42":1,"44":1,"50":2},"10393":{"44":1},"10394":{"40":2,"42":2,"46":1},"10395":{"G":1},"10397":{"G":2},"10398":{"XG":1},"10399":{"46":1,"50":2},"10400":{"46":2,"50":1},"10401":{"G":1},"10402":{"G":1},"10404":{"50":1},"10405":{"40":2,"42":6,"44":12,"46":2},"10406":{"G":2,"M":3,"P":1},"10407":{"G":2,"M":2,"P":9},"10408":{"G":2,"M":5,"P":11},"10410":{"G":2},"10413":{"G":6,"M":11,"SG":2,"XG":19},"10414":{"42":2},"10415":{"44":11,"46":8,"48":4,"50":3},"10416":{"M":1,"SG":1},"10419":{"M":1,"P":1},"10420":{"42":3,"46":1},"10421":{"P":1},"10422":{"52":1},"10423":{"44":4,"46":6,"48":2,"54":6},"10658":{"P":5},"10663":{"ÚNICO":1},"10857":{"ÚNICO":1},"10948":{"ÚNICO":1},"10949":{"ÚNICO":29},"15011":{"40":2},"15012":{"42":1,"G":1,"M":1,"P":4,"XG":1,"XP":4},"15013":{"G":1,"M":3,"P":7,"XP":3},"15017":{"36":1},"15018":{"42":2},"15019":{"38":2,"40":1},"15022":{"02":1,"08":1},"15026":{"38":1,"40":1},"15101":{"38":3,"40":2,"42":3},"15102":{"40":13,"42":12,"44":5},"15103":{"40":4,"42":1},"15107":{"10":1},"17018":{"G":14,"GG":16,"M":18},"17019":{"G":21,"GG":21,"M":19,"P":6},"17041":{"G":1,"GG":1,"M":1},"17042":{"EG":1,"G":25,"GG":4,"M":22},"17043":{"EG":6,"G":3,"M":1,"P":6},"17044":{"G":49,"GG":14,"M":24,"P":5},"17045":{"G":59,"GG":33,"M":88,"XG":10},"17046":{"XG":7,"XXG":10,"XXXG":5},"17047":{"G":14,"GG":12,"M":15,"P":5},"18035":{"G":8,"GG":6,"M":2},"18036":{"G":5,"GG":4,"M":5,"P":2},"18094":{"G":3,"M":1,"P":3},"18095":{"G":1,"P":2},"18117":{"ÚNICO":140},"18235":{"P":1},"18346":{"ÚNICO":4},"18347":{"ÚNICO":12},"18348":{"M":14,"P":4,"ÚNICO":1},"18406":{"G":6,"M":2},"18408":{"G":3,"M":2},"18409":{"EG":4,"G":1,"M":3,"P":2},"18461":{"ÚNICO":5},"18462":{"G":2,"M":3,"ÚNICO":2},"18463":{"ÚNICO":3},"18467":{"XG":49,"XXG":30},"18468":{"XG":22,"XXG":29,"ÚNICO":34},"18469":{"B":1,"BB":2,"G":4,"P":6,"PP":1},"1852":{"ÚNICO":1},"18560":{"G":20,"GG":50,"M":28,"P":23},"18561":{"G":3,"GG":14,"M":12,"P":24},"18562":{"ÚNICO":1},"18563":{"ÚNICO":1},"18564":{"ÚNICO":2},"18565":{"ÚNICO":7},"18566":{"ÚNICO":1},"18567":{"ÚNICO":2},"18568":{"38":2,"40":1,"42":1,"44":5,"48":7,"50":3,"ÚNICO":1},"18569":{"ÚNICO":3},"18571":{"ÚNICO":9},"18572":{"ÚNICO":2},"18573":{"ÚNICO":8},"18574":{"ÚNICO":29},"18575":{"ÚNICO":21},"18576":{"M":1,"P":6},"18577":{"ÚNICO":23},"18578":{"ÚNICO":22},"18666":{"G":40,"GG":29,"M":36,"P":19},"18669":{"M":2,"P":2},"18675":{"M":2},"18677":{"ÚNICO":5},"18678":{"ÚNICO":78},"18681":{"M":2,"P":2},"18697":{"XG":62,"XXG":20},"18698":{"XG":60,"XXG":14},"18699":{"EG":6,"M":1,"P":2,"ÚNICO":2},"19311":{"ÚNICO":14},"19334":{"M":1},"19464":{"ÚNICO":12},"20048":{"ÚNICO":2},"20050":{"ÚNICO":2},"26913":{"ÚNICO":9},"2889":{"G":43,"M":38,"P":41},"2890":{"BB":17},"30080":{"ÚNICO":41},"30093":{"G":235,"GG":222,"M":225,"P":34},"30551":{"G":2,"GG":1,"M":3,"P":2},"30557":{"ÚNICO":1},"30579":{"EG":9,"G":3,"M":4,"P":5},"30586":{"BB":3,"M":2,"P":1,"ÚNICO":7},"30591":{"ÚNICO":100},"30616":{"ÚNICO":56},"30629":{"EG":22,"G":50,"GG":64,"M":102},"30710":{"ÚNICO":10},"30730":{"ÚNICO":16},"31850":{"G":8,"GG":25,"M":9,"P":10,"XG":9},"34022":{"ÚNICO":4},"34027":{"GG":8,"ÚNICO":10},"34028":{"GG":11,"ÚNICO":17},"3702":{"ÚNICO":9},"37021":{"BB":47,"G":40,"M":27,"P":60},"37022":{"G":2},"37023":{"G":12},"37410":{"G":14,"GG":13,"M":7},"37534":{"G":5,"M":6,"P":18},"39900":{"G":1,"P":1},"39901":{"GG":1,"ÚNICO":1},"39902":{"ÚNICO":3},"39903":{"M":1},"39904":{"ÚNICO":8},"39905":{"ÚNICO":3},"39906":{"ÚNICO":11},"39908":{"ÚNICO":81},"39910":{"ÚNICO":2},"39912":{"ÚNICO":3},"39913":{"G":1,"M":2,"PP":4},"39914":{"G":1},"39915":{"ÚNICO":9},"39916":{"ÚNICO":38},"39919":{"ÚNICO":7},"4569":{"ÚNICO":1},"4570":{"G":10,"M":17},"4710":{"G":49,"GG":52,"M":86,"P":10},"4712":{"ÚNICO":1},"4919":{"EG":7,"G":3,"M":7,"P":9},"4920":{"PLUS":6},"5356":{"G":3,"GG":2,"M":1},"5453":{"P":1},"5754":{"ÚNICO":14},"6149":{"ÚNICO":4},"6893":{"ÚNICO":5},"6894":{"ÚNICO":2},"6951":{"G":3,"GG":4,"M":1},"6952":{"ÚNICO":17},"6954":{"G":10,"M":8,"P":19},"6956":{"EG":1,"G":85,"GG":128,"M":133,"P":58},"6960":{"ÚNICO":16},"6962":{"ÚNICO":25},"6970":{"ÚNICO":87},"6971":{"ÚNICO":1},"6973":{"ÚNICO":8},"6974":{"M":4,"P":5},"7534":{"G":1,"GG":3,"P":13},"7539":{"G":1},"8219":{"ÚNICO":26},"9047":{"ÚNICO":83},"9048":{"ÚNICO":4},"9049":{"ÚNICO":1},"9126":{"G":4,"M":4},"9129":{"G":4,"ÚNICO":3},"9130":{"G":6},"9260":{"40":1,"46":1},"9288":{"G":26,"GG":31,"M":25},"9290":{"G":10,"GG":12,"M":12},"9291":{"G":38,"GG":35,"M":30,"P":1},"9292":{"G":22,"GG":16,"M":14},"9294":{"G":4,"GG":4,"M":5},"9295":{"G":5,"GG":5,"M":2},"9297":{"EG":1,"M":4,"P":1},"9307":{"G":17,"GG":2,"M":10},"9339":{"ÚNICO":6},"9340":{"M":1},"9631":{"G":1,"GG":3,"M":3,"P":3},"9632":{"G":2,"GG":3,"M":5},"9634":{"G":3,"GG":2,"M":3},"9819":{"ÚNICO":1},"NMADE NC":{"G":3}}}</script>
+<script>
+(function(){
+const DATA=JSON.parse(document.getElementById('dados').textContent);
+const P=DATA.p, BASE=DATA.base, PBY={}; P.forEach(p=>PBY[p.c]=p);
+const $=s=>document.querySelector(s);
+const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const norm=s=>String(s||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'');
+const slug=s=>norm(s).replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'')||'x';
+const safeSeg=s=>String(s).replace(/[^A-Za-z0-9_\-.~:@+]/g,'~');
+const ORDER=['PP','P','M','G','GG','XG','EG','XGG','XXG','XXXG','ÚNICO','U'];
+const sizeCmp=(a,b)=>{const ia=ORDER.indexOf(a),ib=ORDER.indexOf(b);if(ia>-1&&ib>-1)return ia-ib;if(ia>-1)return -1;if(ib>-1)return 1;return String(a).localeCompare(String(b),'pt',{numeric:true})};
+const nsz=(p,t)=>{t=String(t).toUpperCase().trim();if(t==='U')t='ÚNICO';return p.m==='Triumph'?t.replace(/[A-Z]+$/,''):t};
+
+const S={eans:new Map(),counts:new Map(),hist:[],sess:0,db:null,pend:{},dbOk:false,loaded:{e:false,c:false}};
+let LEARN=null;let QUEUE=[];
+
+/* ---------- banco ---------- */
+function setChip(t){$('#dbchip').textContent=t}
+function setSub(){let tot=0;S.counts.forEach(v=>tot+=v.qtd||0);$('#sub').textContent=tot+' peças contadas · '+S.eans.size+' códigos ensinados · '+S.sess+' nesta sessão'}
+const LS='contagem-lupo-triumph-v1';
+function load(){try{const j=JSON.parse(localStorage.getItem(LS)||'{}');S.eans=new Map(Object.entries(j.eans||{}));S.counts=new Map(Object.entries(j.counts||{}))}catch(e){}}
+let svT=null;
+function persist(){clearTimeout(svT);svT=setTimeout(()=>{try{localStorage.setItem(LS,JSON.stringify({eans:Object.fromEntries(S.eans),counts:Object.fromEntries(S.counts)}));setChip('Salvo neste celular')}catch(e){setChip('Não consegui salvar neste navegador')}},50)}
+function startDb(){load();setChip('Salvo neste celular');render()}
+function dbWrite(){persist();return Promise.resolve()}
+function keyOf(e){return [e.ref,safeSeg(e.corCod||slug(e.cor||'')),safeSeg(e.tam)].join('__')}
+function bump(e,delta,noHist){
+  const k=keyOf(e);const cur=S.counts.get(k);
+  const q=Math.max(0,(cur?cur.qtd:0)+delta);
+  const doc={ref:e.ref,cor:e.cor||'',corCod:e.corCod||'',tam:e.tam,qtd:q};
+  S.counts.set(k,doc);S.sess+=delta;if(!noHist)S.hist.push({e,delta});
+  S.pend[k]=(S.pend[k]||0);
+  dbWrite(k,()=>S.db.doc('contagem/'+k).set(doc));
+  render();return q;
+}
+function setQty(k,q){
+  const cur=S.counts.get(k);if(!cur)return;const doc=Object.assign({},cur,{qtd:Math.max(0,q)});
+  S.counts.set(k,doc);dbWrite(k,()=>S.db.doc('contagem/'+k).set(doc));render();
+}
+function teach(ean,e){
+  const doc={ref:e.ref,cor:e.cor||'',corCod:e.corCod||'',tam:e.tam};
+  S.eans.set(ean,doc);return dbWrite('ean/'+ean,()=>S.db.doc('ean/'+ean).set(doc));
+}
+function unteach(ean){S.eans.delete(ean);render();dbWrite('ean/'+ean,()=>S.db.doc('ean/'+ean).delete())}
+
+/* ---------- som ---------- */
+let AC=null;
+function beep(f,ms){try{AC=AC||new(window.AudioContext||window.webkitAudioContext)();const o=AC.createOscillator(),g=AC.createGain();o.frequency.value=f;g.gain.value=.08;o.connect(g);g.connect(AC.destination);o.start();o.stop(AC.currentTime+ms/1000)}catch(e){}try{navigator.vibrate&&navigator.vibrate(30)}catch(e){}}
+
+/* ---------- EAN ---------- */
+function eanOk(s){
+  if(!/^\d+$/.test(s))return false;
+  if(![8,12,13,14].includes(s.length))return false;
+  const d=s.split('').map(Number),chk=d.pop();let sum=0;
+  d.reverse().forEach((n,i)=>sum+=n*(i%2===0?3:1));
+  return (10-(sum%10))%10===chk;
+}
+const label=e=>{const p=PBY[e.ref];return (p?p.l+p.c+' · '+p.d+(p.x?' '+p.x:''):e.ref)+' · '+(e.cor||'sem cor')+' · '+e.tam};
+
+function submit(raw){
+  const s=String(raw||'').replace(/\D/g,'');const qn=Math.max(1,parseInt($('#qtd').value,10)||1);
+  $('#ean').value='';
+  if(!s){return}
+  if(!eanOk(s)){beep(180,250);$('#last').innerHTML='<div class="card"><span class="pill warn">▲ Leitura inválida</span><p style="margin:8px 0 0">O número <b>'+esc(s)+'</b> não é um código de barras válido (faltou algum dígito?). Bipe de novo.</p></div>';return}
+  const e=S.eans.get(s);
+  if(e){beep(880,90);const q=bump(e,qn);
+    $('#last').innerHTML='<div class="card"><div class="res"><div class="t"><span class="pill">✓ Contado +'+qn+'</span><div style="margin-top:6px;font-weight:600">'+esc(label(e))+'</div><div class="sub">EAN '+esc(s)+'</div></div><div style="text-align:right"><div class="big">'+q+'</div><div class="sub">desta variação</div></div></div><div class="row" style="margin-top:10px"><button class="b alt sm" id="undo">Desfazer última leitura</button></div></div>';
+  }else{
+    beep(300,200);LEARN={ean:s,qtd:qn,p:null,cor:'',corCod:'',tam:'',q:''};$('#last').innerHTML='';renderLearn();
+  }
+  setSub();
+}
+document.addEventListener('click',ev=>{
+  const t=ev.target.closest('button');if(!t)return;
+  if(t.id==='undo'){const h=S.hist.pop();if(h){bump(h.e,-h.delta,true);$('#last').innerHTML='<div class="card"><span class="pill warn">↩ Última leitura desfeita</span></div>'}}
+});
+
+/* ---------- aprender ---------- */
+function searchP(q){
+  const n=norm(q).trim();if(!n)return P.filter(p=>p.b).concat(P.filter(p=>!p.b&&BASE[p.c])).slice(0,8);
+  const ws=n.split(/\s+/);
+  return P.filter(p=>{const h=norm([p.l+p.c,p.c,p.l,p.d,p.x,p.r,p.m].join(' '));return ws.every(w=>h.includes(w))}).slice(0,12);
+}
+function sizesOf(p){
+  const s=new Set();p.sz.forEach(x=>s.add(x));Object.keys(BASE[p.c]||{}).forEach(x=>s.add(x));
+  return [...s].sort(sizeCmp);
+}
+function renderLearn(){
+  const el=$('#learn');if(!LEARN){el.hidden=true;el.innerHTML='';return}
+  el.hidden=false;const L=LEARN;let h='<h2>Código novo. Qual é essa peça?'+(L.rest?' <span class="sub">(faltam '+L.rest+' depois deste)</span>':'')+'</h2><div class="sub">EAN '+esc(L.ean)+'. Você ensina uma vez e as próximas leituras contam sozinhas.</div>';
+  if(!L.p){
+    h+='<div style="margin-top:10px"><label for="lq">Buscar produto</label><input id="lq" value="'+esc(L.q)+'" placeholder="Letras, código, nome ou referência" autocomplete="off"></div><div class="list" id="lres">';
+    searchP(L.q).forEach(p=>{h+='<button class="item" data-p="'+esc(p.c)+'"><span class="n"><b>'+esc(p.l+p.c)+'</b> · '+esc(p.d)+(p.x?' <span class="sub">'+esc(p.x)+'</span>':'')+'</span><span class="sub">'+esc(p.m)+(p.b?' · no Bling':'')+'</span></button>'});
+    h+='</div>';
+  }else{
+    const p=L.p;
+    h+='<div style="margin-top:10px"><b>'+esc(p.l+p.c)+'</b> · '+esc(p.d)+' <button class="b alt sm" id="lback">Trocar produto</button></div>';
+    h+='<div style="margin-top:10px"><label>Cor</label><div class="chips" id="lcor">';
+    p.cor.forEach(c=>{h+='<button data-cod="'+esc(c[0])+'" data-nome="'+esc(c[1])+'" aria-pressed="'+(L.corCod===c[0])+'">'+esc(c[1])+' <span class="sub">'+esc(c[0])+'</span></button>'});
+    h+='</div>';
+    if(!p.cor.length||true)h+='<div class="row" style="margin-top:8px"><div><label for="lcn">'+(p.cor.length?'Outra cor (nome)':'Cor (nome como está na etiqueta)')+'</label><input id="lcn" value="'+(p.cor.some(c=>c[0]===L.corCod)?'':esc(L.cor))+'"></div><div style="flex:0 0 120px"><label for="lcc">Código da cor</label><input id="lcc" value="'+(p.cor.some(c=>c[0]===L.corCod)?'':esc(L.corCod))+'" inputmode="numeric"></div></div>';
+    h+='</div><div style="margin-top:10px"><label>Tamanho</label><div class="chips" id="ltam">';
+    const sz=sizesOf(p);const extra=['PP','P','M','G','GG','XG','U'].filter(x=>!sz.includes(x));
+    (sz.length?sz:['P','M','G','GG','XG','U']).forEach(s=>{h+='<button data-t="'+esc(s)+'" aria-pressed="'+(L.tam===s)+'">'+esc(s)+'</button>'});
+    h+='</div><div class="row" style="margin-top:8px"><div><label for="ltn">Outro tamanho</label><input id="ltn" value="'+(sz.includes(L.tam)?'':esc(L.tam))+'"></div></div></div>';
+    h+='<div class="row" style="margin-top:12px"><button class="b" id="lsave">Salvar e contar '+L.qtd+'</button><button class="b alt fixed" id="lcancel">Cancelar</button></div><p class="hint" id="lmsg"></p>';
+  }
+  if(!L.p)h+='<div class="row" style="margin-top:10px"><button class="b alt" id="lcancel">Cancelar</button></div>';
+  el.innerHTML=h;
+}
+$('#learn').addEventListener('input',ev=>{
+  if(ev.target.id==='lq'){LEARN.q=ev.target.value;const sel=ev.target.selectionStart;renderLearn();const i=$('#lq');i.focus();i.setSelectionRange(sel,sel)}
+  if(ev.target.id==='lcn'){LEARN.cor=ev.target.value;LEARN.corCod=($('#lcc')||{}).value||'';document.querySelectorAll('#lcor button').forEach(b=>b.setAttribute('aria-pressed','false'))}
+  if(ev.target.id==='lcc'){LEARN.corCod=ev.target.value;LEARN.cor=($('#lcn')||{}).value||'';document.querySelectorAll('#lcor button').forEach(b=>b.setAttribute('aria-pressed','false'))}
+  if(ev.target.id==='ltn'){LEARN.tam=ev.target.value.toUpperCase();document.querySelectorAll('#ltam button').forEach(b=>b.setAttribute('aria-pressed','false'))}
+});
+$('#learn').addEventListener('click',async ev=>{
+  const t=ev.target.closest('button');if(!t)return;
+  if(t.dataset.p){LEARN.p=PBY[t.dataset.p];renderLearn();return}
+  if(t.id==='lback'){LEARN.p=null;renderLearn();return}
+  if(t.id==='lcancel'){if(!nextLearn())$('#ean').focus();return}
+  if(t.dataset.cod!==undefined){LEARN.corCod=t.dataset.cod;LEARN.cor=t.dataset.nome;renderLearn();return}
+  if(t.dataset.t!==undefined){LEARN.tam=t.dataset.t;renderLearn();return}
+  if(t.id==='lsave'){
+    const L=LEARN;const cor=(L.cor||'').trim(),cod=(L.corCod||'').trim(),tam=(L.tam||'').trim().toUpperCase();
+    if(!cor&&!cod){$('#lmsg').textContent='Escolha a cor, ou digite o nome ou o código da cor.';return}
+    if(!tam){$('#lmsg').textContent='Escolha o tamanho.';return}
+    const e={ref:L.p.c,cor:cor||cod,corCod:cod,tam};
+    await teach(L.ean,e);const q=bump(e,L.qtd);beep(880,90);
+    $('#last').innerHTML='<div class="card"><div class="res"><div class="t"><span class="pill">✓ Ensinado e contado +'+L.qtd+'</span><div style="margin-top:6px;font-weight:600">'+esc(label(e))+'</div><div class="sub">EAN '+esc(L.ean)+'</div></div><div style="text-align:right"><div class="big">'+q+'</div><div class="sub">desta variação</div></div></div><div class="row" style="margin-top:10px"><button class="b alt sm" id="undo">Desfazer última leitura</button></div></div>';
+    if(!nextLearn()){$('#ean').focus()}setSub();
+  }
+});
+
+/* ---------- foto ---------- */
+$('#cam').addEventListener('click',()=>$('#file').click());
+function loadScript(src){return new Promise((ok,no)=>{const s=document.createElement('script');s.src=src;s.onload=ok;s.onerror=no;document.head.appendChild(s)})}
+$('#file').addEventListener('change',async ev=>{
+  const f=ev.target.files&&ev.target.files[0];ev.target.value='';if(!f)return;
+  const n=$('#camnote');n.hidden=false;n.textContent='Lendo a foto…';
+  try{
+    const bmp=await createImageBitmap(f);let code=null;
+    if('BarcodeDetector' in window){
+      try{const det=new BarcodeDetector({formats:['ean_13','ean_8','upc_a','upc_e']});const r=await det.detect(bmp);if(r.length)code=r[0].rawValue}catch(e){}
+    }
+    if(!code){
+      if(!window.ZXing)await loadScript('https://cdn.jsdelivr.net/npm/@zxing/library@0.21.3/umd/index.min.js');
+      const url=URL.createObjectURL(f);const rd=new ZXing.BrowserMultiFormatReader();
+      const r=await rd.decodeFromImageUrl(url);code=r.getText();URL.revokeObjectURL(url);
+    }
+    n.hidden=true;if(code)submit(code);else n.textContent='Não achei o código na foto. Tire de novo, de perto e com boa luz, ou digite o número.';
+  }catch(e){n.hidden=false;n.textContent='Não consegui ler o código da foto. Tire de novo, de perto e com boa luz, ou digite o número.'}
+});
+function nextLearn(){
+  if(!QUEUE.length){LEARN=null;renderLearn();return false}
+  const it=QUEUE.shift();LEARN={ean:it.ean,qtd:it.qtd,p:null,cor:'',corCod:'',tam:'',q:'',rest:QUEUE.length};renderLearn();$('#learn').scrollIntoView({block:'nearest'});return true
+}
+$('#golista').addEventListener('click',()=>{
+  const toks=($('#lista').value||'').split(/[^0-9]+/).filter(Boolean);
+  const agg=new Map();let bad=0;
+  toks.forEach(t=>{if(eanOk(t))agg.set(t,(agg.get(t)||0)+1);else bad++});
+  let ok=0,newer=[];
+  agg.forEach((n,e)=>{const x=S.eans.get(e);if(x){bump(x,n);ok+=n}else newer.push({ean:e,qtd:n})});
+  QUEUE=newer;$('#lista').value='';
+  $('#listamsg').textContent=ok+' peças contadas de códigos já ensinados'+(newer.length?'; '+newer.length+' código(s) novos para ensinar abaixo':'')+(bad?'; '+bad+' leitura(s) inválida(s) ignoradas':'')+'.';
+  if(newer.length)nextLearn();setSub();
+});
+$('#ean').addEventListener('keydown',ev=>{if(ev.key==='Enter'){ev.preventDefault();submit($('#ean').value)}});
+$('#go').addEventListener('click',()=>submit($('#ean').value));
+
+/* ---------- conferir ---------- */
+function groupCounts(){
+  const g={};S.counts.forEach((v,k)=>{if(!v.qtd&&v.qtd!==0)return;const p=PBY[v.ref];if(!p)return;(g[v.ref]=g[v.ref]||{vars:[],bySz:{}});g[v.ref].vars.push([k,v]);const s=nsz(p,v.tam);g[v.ref].bySz[s]=(g[v.ref].bySz[s]||0)+(v.qtd||0)});return g
+}
+function diffPill(d){
+  if(d===0)return '<span class="pill">✓ confere</span>';
+  return d>0?'<span class="pill warn">▲ sobram '+d+'</span>':'<span class="pill warn">▼ faltam '+(-d)+'</span>';
+}
+function renderConf(){
+  const G=groupCounts();const q=norm($('#q').value).trim().split(/\s+/).filter(Boolean);const f=$('#flt').value;
+  const codes=new Set(Object.keys(BASE));Object.keys(G).forEach(c=>codes.add(c));
+  const rows=[];
+  codes.forEach(c=>{
+    const p=PBY[c];if(!p)return;
+    const h=norm([p.l+p.c,p.c,p.l,p.d,p.x,p.r].join(' '));if(!q.every(w=>h.includes(w)))return;
+    const base={};Object.entries(BASE[c]||{}).forEach(([t,v])=>{const k=nsz(p,t);base[k]=(base[k]||0)+v});
+    const cnt=(G[c]&&G[c].bySz)||{};
+    const sizes=[...new Set([...Object.keys(base),...Object.keys(cnt)])].sort(sizeCmp);
+    const tb=sizes.reduce((a,s)=>a+(base[s]||0),0),tc=sizes.reduce((a,s)=>a+(cnt[s]||0),0);
+    const counted=!!G[c];
+    if(f==='none'&&counted)return;if(f==='cnt'&&!counted)return;
+    const hasDiff=sizes.some(s=>(base[s]||0)!==(cnt[s]||0));
+    if(f==='diff'&&(!counted||!hasDiff))return;
+    rows.push({p,base,cnt,sizes,tb,tc,counted,vars:(G[c]||{vars:[]}).vars});
+  });
+  rows.sort((a,b)=>(b.counted-a.counted)||a.p.c.localeCompare(b.p.c,'pt',{numeric:true}));
+  const el=$('#conflist');
+  if(!rows.length){el.innerHTML='<div class="empty">Nada para mostrar com esse filtro.</div>';return}
+  const open=new Set([...document.querySelectorAll('#conflist details[open]')].map(d=>d.dataset.c));
+  el.innerHTML=rows.slice(0,120).map(r=>{
+    const p=r.p;let t='<details data-c="'+esc(p.c)+'"'+(open.has(p.c)?' open':'')+'><summary><span style="min-width:0"><b>'+esc(p.l+p.c)+'</b> · '+esc(p.d)+(p.x?' <span class="sub">'+esc(p.x)+'</span>':'')+'<div class="sub">Planilha '+r.tb+' · Bipado '+r.tc+'</div></span>'+(r.counted?diffPill(r.tc-r.tb):'<span class="pill warn">não contado</span>')+'</summary><div class="body"><div class="scroll"><table><thead><tr><th>Tamanho</th><th class="r">Planilha</th><th class="r">Bipado</th><th>Situação</th></tr></thead><tbody>';
+    r.sizes.forEach(s=>{const b=r.base[s]||0,c=r.cnt[s]||0;t+='<tr><td>'+esc(s)+'</td><td class="r">'+b+'</td><td class="r">'+c+'</td><td>'+(r.counted?diffPill(c-b):'—')+'</td></tr>'});
+    t+='</tbody></table></div>';
+    if(r.vars.length){t+='<h2 style="margin-top:12px">Por cor e tamanho</h2><div class="scroll"><table><tbody>';
+      r.vars.sort((a,b)=>String(a[1].cor).localeCompare(b[1].cor,'pt')||sizeCmp(a[1].tam,b[1].tam)).forEach(([k,v])=>{t+='<tr><td>'+esc(v.cor||'—')+'</td><td>'+esc(v.tam)+'</td><td class="r"><span class="qty"><button data-m="'+esc(k)+'" aria-label="Diminuir">−</button><b>'+v.qtd+'</b><button data-p="'+esc(k)+'" aria-label="Aumentar">+</button></span></td></tr>'});
+      t+='</tbody></table></div>'}
+    return t+'</div></details>';
+  }).join('')+(rows.length>120?'<div class="empty">Mostrando 120 de '+rows.length+'. Use a busca.</div>':'');
+}
+$('#conflist').addEventListener('click',ev=>{
+  const b=ev.target.closest('button');if(!b)return;
+  if(b.dataset.m){const v=S.counts.get(b.dataset.m);if(v)setQty(b.dataset.m,(v.qtd||0)-1)}
+  if(b.dataset.p){const v=S.counts.get(b.dataset.p);if(v)setQty(b.dataset.p,(v.qtd||0)+1)}
+});
+$('#q').addEventListener('input',renderConf);$('#flt').addEventListener('change',renderConf);
+
+/* ---------- ligações ---------- */
+let ARM=null;
+function renderLig(){
+  const a=[...S.eans.entries()].sort((x,y)=>label(x[1]).localeCompare(label(y[1]),'pt',{numeric:true}));
+  $('#ligsum').textContent=a.length+' códigos ligados a uma variação';
+  $('#liglist').innerHTML=a.length?a.map(([k,e])=>'<div class="item" style="cursor:default"><span class="n">'+esc(label(e))+'<div class="sub">EAN '+esc(k)+'</div></span><button class="b alt sm" data-del="'+esc(k)+'">'+(ARM===k?'Confirmar':'Apagar')+'</button></div>').join(''):'<div class="empty">Nenhum código ensinado ainda. Bipe uma peça na aba Bipar.</div>';
+}
+$('#liglist').addEventListener('click',ev=>{const b=ev.target.closest('button');if(!b||!b.dataset.del)return;if(ARM===b.dataset.del){ARM=null;unteach(b.dataset.del)}else{ARM=b.dataset.del;renderLig()}});
+
+
+/* ---------- câmera ---------- */
+let CAM={on:false,stream:null,zx:null,last:'',t:0};
+function onCode(c){
+  const now=Date.now();if(LEARN)return;
+  if(c===CAM.last&&now-CAM.t<2500){CAM.t=now;return}
+  CAM.last=c;CAM.t=now;submit(c);
+  const a=$('#aim');if(a){a.style.borderColor='#6FA3F0';setTimeout(()=>a.style.borderColor='#fff',250)}
+}
+async function camStart(){
+  const st=$('#camst');$('#camwrap').hidden=false;$('#camon').textContent='Fechar a câmera';
+  if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){st.textContent='Este navegador não abre a câmera. Use a foto ou digite o número.';return}
+  try{
+    const v=$('#vid');
+    if('BarcodeDetector' in window){
+      CAM.stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:'environment'},width:{ideal:1280},height:{ideal:720}},audio:false});
+      v.srcObject=CAM.stream;await v.play();CAM.on=true;
+      const det=new BarcodeDetector({formats:['ean_13','ean_8','upc_a','upc_e']});
+      const loop=async()=>{if(!CAM.on)return;try{if(v.readyState>=2){const r=await det.detect(v);if(r.length)onCode(r[0].rawValue)}}catch(e){}setTimeout(loop,120)};loop();
+    }else{
+      if(!window.ZXing)await loadScript('https://cdn.jsdelivr.net/npm/@zxing/library@0.21.3/umd/index.min.js');
+      CAM.zx=new ZXing.BrowserMultiFormatReader();CAM.on=true;
+      await CAM.zx.decodeFromVideoDevice(null,'vid',(res,err)=>{if(res)onCode(res.getText())});
+    }
+    st.textContent='Câmera aberta. Aponte o código de barras para a faixa tracejada. Tire o código da frente entre uma peça e outra.';
+  }catch(e){CAM.on=false;st.textContent='Não consegui abrir a câmera. Permita o acesso à câmera nas configurações do navegador e tente de novo.'}
+}
+function camStop(){
+  CAM.on=false;try{CAM.zx&&CAM.zx.reset()}catch(e){}CAM.zx=null;
+  if(CAM.stream){CAM.stream.getTracks().forEach(t=>t.stop());CAM.stream=null}
+  $('#camwrap').hidden=true;$('#camon').textContent='Abrir a câmera para bipar';
+}
+$('#camon').addEventListener('click',()=>CAM.on?camStop():camStart());
+document.addEventListener('visibilitychange',()=>{if(document.hidden&&CAM.on)camStop()});
+
+/* ---------- exportar ---------- */
+const csvCell=v=>{v=String(v==null?'':v);return /[;"\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v};
+function save(name,rows){
+  const txt='\ufeff'+rows.map(r=>r.map(csvCell).join(';')).join('\r\n');
+  dl(name,txt,'text/csv;charset=utf-8')
+}
+function dl(name,txt,type){
+  try{const blob=new Blob([txt],{type});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},1500);$('#xmsg').textContent='Arquivo baixado: '+name+'. Mande para o Claude na conversa.'}
+  catch(e){$('#xmsg').textContent='Não consegui baixar o arquivo.'}
+}
+$('#xc').addEventListener('click',()=>{
+  const rows=[['Código loja','Letras','Descrição','Cor','Código da cor','Tamanho','Quantidade','SKU no Bling']];
+  [...S.counts.values()].sort((a,b)=>String(a.ref).localeCompare(b.ref,'pt',{numeric:true})||String(a.cor).localeCompare(b.cor)||sizeCmp(a.tam,b.tam)).forEach(v=>{const p=PBY[v.ref]||{};rows.push([v.ref,p.l||'',p.d||'',v.cor,v.corCod,v.tam,v.qtd,p.b&&v.corCod?(p.l+v.ref+'-'+v.corCod+'-'+v.tam):''])});
+  save('contagem.csv',rows)});
+$('#xl').addEventListener('click',()=>{
+  const rows=[['EAN','Código loja','Letras','Descrição','Cor','Código da cor','Tamanho']];
+  S.eans.forEach((e,k)=>{const p=PBY[e.ref]||{};rows.push([k,e.ref,p.l||'',p.d||'',e.cor,e.corCod,e.tam])});
+  save('ligacoes_ean.csv',rows)});
+
+$('#xb').addEventListener('click',()=>dl('copia-contagem.json',JSON.stringify({eans:Object.fromEntries(S.eans),counts:Object.fromEntries(S.counts)}),'application/json'));
+$('#xr').addEventListener('click',()=>$('#xf').click());
+$('#xf').addEventListener('change',async ev=>{const f=ev.target.files[0];ev.target.value='';if(!f)return;try{const j=JSON.parse(await f.text());S.eans=new Map(Object.entries(j.eans||{}));S.counts=new Map(Object.entries(j.counts||{}));persist();render();$('#xmsg').textContent='Cópia restaurada.'}catch(e){$('#xmsg').textContent='Arquivo inválido.'}});
+
+/* ---------- abas e render ---------- */
+function tab(n){
+  ['bipar','conf','lig','exp'].forEach(x=>{$('#v-'+x).hidden=x!==n;$('#t-'+x).setAttribute('aria-selected',x===n)});
+  try{history.replaceState(null,'','#'+n)}catch(e){}
+  render();if(n==='bipar')setTimeout(()=>{const i=$('#ean');i&&i.focus({preventScroll:true})},50)
+}
+document.querySelector('.tabs').addEventListener('click',ev=>{const b=ev.target.closest('button');if(b)tab(b.dataset.tab)});
+function render(){
+  setSub();
+  if(!$('#v-conf').hidden)renderConf();
+  if(!$('#v-lig').hidden)renderLig();
+}
+const h0=(location.hash||'').slice(1);tab(['bipar','conf','lig','exp'].includes(h0)?h0:'bipar');
+if('BarcodeDetector' in window===false){}
+startDb();
+})();
+</script>
+</body></html>
