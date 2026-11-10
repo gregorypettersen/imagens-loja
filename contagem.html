@@ -383,10 +383,23 @@ async function camStart(){
   try{
     const v=$('#vid');
     if('BarcodeDetector' in window){
-      CAM.stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:'environment'},width:{ideal:1280},height:{ideal:720}},audio:false});
+      CAM.stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:'environment'},width:{ideal:1920},height:{ideal:1080}},audio:false});
+      try{const tr=CAM.stream.getVideoTracks()[0];const cp=tr.getCapabilities?tr.getCapabilities():{};
+        if(cp.focusMode&&cp.focusMode.includes('continuous'))await tr.applyConstraints({advanced:[{focusMode:'continuous'}]})}catch(e){}
       v.srcObject=CAM.stream;await v.play();CAM.on=true;
-      const det=new BarcodeDetector({formats:['ean_13','ean_8','upc_a','upc_e']});
-      const loop=async()=>{if(!CAM.on)return;try{if(v.readyState>=2){const r=await det.detect(v);if(r.length)onCode(r[0].rawValue)}}catch(e){}setTimeout(loop,120)};loop();
+      let det;try{const fm=await BarcodeDetector.getSupportedFormats();const want=['ean_13','ean_8','upc_a','upc_e'].filter(x=>fm.includes(x));det=new BarcodeDetector({formats:want.length?want:undefined})}catch(e){det=new BarcodeDetector()}
+      const cv=document.createElement('canvas');const cx=cv.getContext('2d');let n=0;
+      const rot=async(deg)=>{const w=v.videoWidth,h=v.videoHeight;if(!w)return[];
+        if(deg===0){cv.width=w;cv.height=h;cx.drawImage(v,0,0)}else{cv.width=h;cv.height=w;cx.save();cx.translate(h/2,w/2);cx.rotate(deg*Math.PI/180);cx.drawImage(v,-w/2,-h/2);cx.restore()}
+        return det.detect(cv)};
+      const loop=async()=>{if(!CAM.on)return;n++;
+        try{if(v.readyState>=2){
+          let r=await det.detect(v);
+          if(!r.length)r=await rot(n%2?90:270);
+          if(r.length)onCode(r[0].rawValue);
+          else if(n%8===0)st.textContent='Procurando o código… ('+n+' tentativas). Chegue mais perto, deixe a etiqueta plana e bem iluminada.';
+        }}catch(e){}
+        setTimeout(loop,140)};loop();
     }else{
       if(!window.ZXing)await loadScript('https://cdn.jsdelivr.net/npm/@zxing/library@0.21.3/umd/index.min.js');
       CAM.zx=new ZXing.BrowserMultiFormatReader();CAM.on=true;
