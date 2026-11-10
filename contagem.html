@@ -254,7 +254,7 @@ function renderLearn(){
   el.innerHTML=h;
 }
 $('#learn').addEventListener('input',ev=>{
-  if(ev.target.id==='lq'){LEARN.q=ev.target.value;const sel=ev.target.selectionStart;renderLearn();const i=$('#lq');i.focus();i.setSelectionRange(sel,sel)}
+  if(ev.target.id==='lq'){LEARN.q=ev.target.value;let h='';searchP(LEARN.q).forEach(p=>{h+='<button class="item" data-p="'+esc(p.c)+'"><span class="n"><b>'+esc(p.l+p.c)+'</b> · '+esc(p.d)+(p.x?' <span class="sub">'+esc(p.x)+'</span>':'')+'</span><span class="sub">'+esc(p.m)+(p.b?' · no Bling':'')+'</span></button>'});$('#lres').innerHTML=h}
   if(ev.target.id==='lcn'){LEARN.cor=ev.target.value;LEARN.corCod=($('#lcc')||{}).value||'';document.querySelectorAll('#lcor button').forEach(b=>b.setAttribute('aria-pressed','false'))}
   if(ev.target.id==='lcc'){LEARN.corCod=ev.target.value;LEARN.cor=($('#lcn')||{}).value||'';document.querySelectorAll('#lcor button').forEach(b=>b.setAttribute('aria-pressed','false'))}
   if(ev.target.id==='ltn'){LEARN.tam=ev.target.value.toUpperCase();document.querySelectorAll('#ltam button').forEach(b=>b.setAttribute('aria-pressed','false'))}
